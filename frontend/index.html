@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MoodMatrix - AI-Powered Study Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<link rel="stylesheet" href="style.css">
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-content">
+      <div class="logo" onclick="showSection('hero')">
+        <i class="fas fa-brain logo-icon"></i>
+        MoodMatrix
+      </div>
+      <ul class="nav-links">
+        <li><a href="#" onclick="showSection('hero')">Home</a></li>
+        <li><a href="#" onclick="showSection('dashboard')">Dashboard</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>Active</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="heroSection">
+    <div class="hero-content fade-in">
+      <h1><span class="hero-title-gradient">MoodMatrix</span></h1>
+      <p class="hero-subtitle">
+        Transform your learning experience with AI-powered emotional intelligence, 
+        real-time feedback, and personalized study optimization.
+      </p>
+      <div class="hero-buttons">
+        <button class="btn btn-primary" onclick="showSection('dashboard')">
+          <i class="fas fa-rocket"></i>
+          Start Study Session
+        </button>
+        <button class="btn btn-secondary" onclick="connectHardware()">
+          <i class="fas fa-microchip"></i>
+          Connect Devices
+        </button>
+      </div>
+      
+      <div class="hero-features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3>AI-Powered Analysis</h3>
+          <p>Advanced emotional intelligence monitoring for optimal learning states</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Real-Time Insights</h3>
+          <p>Live feedback on focus, posture, and attention levels during study sessions</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <h3>Personalized Learning</h3>
+          <p>Adaptive recommendations based on your unique learning patterns</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard Section -->
+  <section class="dashboard-section" id="dashboardSection">
+    <div class="dashboard-header">
+      <h2>Study Dashboard</h2>
+      <p class="hero-subtitle">Monitor your learning progress and optimize your study sessions</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Study Timer Card -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <h3>Focus Timer</h3>
+        </div>
+        
+        <div class="progress-ring">
+          <svg>
+            <circle class="progress-ring-bg" cx="100" cy="100" r="90"/>
+            <circle class="progress-ring-fill" cx="100" cy="100" r="90" 
+                    stroke-dasharray="565" stroke-dashoffset="113"/>
+          </svg>
+        </div>
+        
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        
+        <div class="timer-controls">
+          <button class="control-btn" id="playBtn" onclick="toggleTimer()">
+            <i class="fas fa-play"></i>
+          </button>
+          <button class="control-btn" onclick="resetTimer()">
+            <i class="fas fa-stop"></i>
+          </button>
+        </div>
+
+        <div style="text-align: center; margin-top: 1rem;">
+          <strong>Current Subject:</strong> Data Structures & Algorithms
+        </div>
+      </div>
+
+      <!-- Today's Schedule -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <h3>Today's Schedule</h3>
+        </div>
+        
+        <div class="schedule-item high">
+          <div class="schedule-time">9:00 - 10:30</div>
+          <div class="schedule-title">Algorithm Assignment</div>
+        </div>
+        
+        <div class="schedule-item medium">
+          <div class="schedule-time">13:00 - 14:30</div>
+          <div class="schedule-title">Database Study Group</div>
+        </div>
+        
+        <div class="schedule-item low">
+          <div class="schedule-time">16:00 - 17:00</div>
+          <div class="schedule-title">Review Machine Learning</div>
+        </div>
+
+        <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+          <i class="fas fa-plus"></i>
+          Add New Task
+        </button>
+      </div>
+
+      <!-- Analytics Card -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <h3>Performance Analytics</h3>
+        </div>
+        
+        <div class="chart-container" id="performanceChart">
+          <canvas id="chartCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">92%</div>
+            <div class="stat-label">Focus Score</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">4.2h</div>
+            <div class="stat-label">Study Time</div>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+          <i class="fas fa-analytics"></i>
+          View Detailed Report
+        </button>
+      </div>
+
+      <!-- Hardware Status -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-video"></i>
+          </div>
+          <h3>Hardware Monitor</h3>
+        </div>
+        
+        <div class="camera-feed">
+          <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=300&fit=crop" alt="Camera Feed">
+          <div class="live-indicator">
+            <div class="status-dot"></div>
+            LIVE
+          </div>
+        </div>
+        
+        <div class="hardware-stats">
+          <div class="hardware-stat">
+            <div style="font-size: 1.25rem; font-weight: 600;">32%</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted);">CPU Usage</div>
+          </div>
+          <div class="hardware-stat">
+            <div style="font-size: 1.25rem; font-weight: 600;">42°C</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted);">Temperature</div>
+          </div>
+          <div class="hardware-stat">
+            <div style="font-size: 1.25rem; font-weight: 600;">25ms</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted);">Latency</div>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+          <i class="fas fa-cog"></i>
+          Calibrate Hardware
+        </button>
+      </div>
+
+      <!-- Real-time Monitoring -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-eye"></i>
+          </div>
+          <h3>Live Monitoring</h3>
+        </div>
+        
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            <strong>Posture Status</strong>
+          </div>
+          <p style="color: var(--text-secondary); margin: 0;">Good posture detected. Keep it up!</p>
+        </div>
+        
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+            <strong>Focus Alert</strong>
+          </div>
+          <p style="color: var(--text-secondary); margin: 0;">Your attention has dropped 15% in the last 10 minutes</p>
+        </div>
+      </div>
+
+      <!-- Recommendations Card -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h3>AI Recommendations</h3>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <div style="width: 32px; height: 32px; background: var(--info); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-walking" style="color: white; font-size: 0.875rem;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: var(--text-primary);">Take a short break</div>
+              <div style="font-size: 0.875rem; color: var(--text-muted);">5 minute walk recommended</div>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-music" style="color: white; font-size: 0.875rem;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: var(--text-primary);">Try focus music</div>
+              <div style="font-size: 0.875rem; color: var(--text-muted);">Lofi beats work best for you</div>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-book" style="color: white; font-size: 0.875rem;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: var(--text-primary);">Switch subjects</div>
+              <div style="font-size: 0.875rem; color: var(--text-muted);">Try Mathematics for 25 minutes</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;">
+          <i class="fas fa-robot"></i>
+          Generate Custom Plan
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Chat -->
+  <div class="ai-chat">
+    <button class="chat-toggle" onclick="toggleChat()">
+      <i class="fas fa-comment"></i>
+    </button>
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <h3>AI Study Assistant</h3>
+        <button class="control-btn" onclick="toggleChat()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="chat-content">
+        <div class="message ai">
+          Hi there! I'm your AI study assistant. How can I help you today?
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="Ask me anything...">
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
