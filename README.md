@@ -28,7 +28,7 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 
 
 ##  Block Diagram  
-*(To be added – diagram from project files)*  
+![alt text](assets/image.png)
 
 
 
