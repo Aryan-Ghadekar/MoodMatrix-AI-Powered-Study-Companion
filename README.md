@@ -38,11 +38,11 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 ```bash
 git clone https://github.com/your-username/MoodMatrix-AI-Powered-Study-Companion.git
 cd MoodMatrix-AI-Powered-Study-Companion
-
+```
 
 
 ### 2. Set Up the Environment
-
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
