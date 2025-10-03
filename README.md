@@ -38,3 +38,23 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 ```bash
 git clone https://github.com/your-username/MoodMatrix-AI-Powered-Study-Companion.git
 cd MoodMatrix-AI-Powered-Study-Companion
+
+
+
+### 2. Set Up the Environment
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+
+pip install -r requirements.txt
+```
+
+### 3. Download Pre-trained Models
+Download the required pre-trained models and place them in the `models/` directory.
+- [Pose Landmarker Model](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker#models)
+- [Face Landmarker Model](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker#models)
+
+### 4. Run the Application
+```bash
+python backend/cognitive_load.py
+```
