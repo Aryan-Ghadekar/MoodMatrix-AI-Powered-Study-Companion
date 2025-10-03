@@ -42,7 +42,7 @@ cd MoodMatrix-AI-Powered-Study-Companion
 
 
 ### 2. Set Up the Environment
-```bash
+
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
