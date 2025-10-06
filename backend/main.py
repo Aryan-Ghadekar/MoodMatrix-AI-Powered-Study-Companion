@@ -1,12 +1,14 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 import os
-from ppt import process_ppt_file, get_slide_content, extract_text_from_ppt
+from ppt import process_ppt_file, get_slide_content, extract_text_from_ppt, save_uploaded_ppt
 from quiz import quiz_generator, QuizGenerator
 from typing import List, Optional
 import json
+import uuid
+from pathlib import Path
 
 app = FastAPI(title="SlideSense API")
 
@@ -21,6 +23,7 @@ app.add_middleware(
 
 # Create uploads directory
 os.makedirs("static/uploads", exist_ok=True)
+os.makedirs("static/presentations", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Store presentations in memory (in production, use a database)
@@ -40,8 +43,12 @@ async def upload_ppt(file: UploadFile = File(...)):
         if not file.filename.lower().endswith(('.pptx', '.ppt')):
             raise HTTPException(status_code=400, detail="Only PPT/PPTX files are allowed")
         
+        # Generate unique filename
+        file_extension = Path(file.filename).suffix
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = f"static/uploads/{unique_filename}"
+        
         # Save uploaded file
-        file_path = f"static/uploads/{file.filename}"
         with open(file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
@@ -50,15 +57,17 @@ async def upload_ppt(file: UploadFile = File(...)):
         presentation_data = process_ppt_file(file_path)
         
         # Store presentation data
-        presentations[file.filename] = {
+        presentations[unique_filename] = {
             "file_path": file_path,
             "data": presentation_data,
-            "original_filename": file.filename
+            "original_filename": file.filename,
+            "unique_filename": unique_filename
         }
         
         return JSONResponse({
             "success": True,
-            "filename": file.filename,
+            "filename": unique_filename,
+            "original_filename": file.filename,
             "slides": presentation_data["slides"],
             "total_slides": presentation_data["total_slides"],
             "file_path": file_path
@@ -87,6 +96,29 @@ async def get_slide_data(filename: str, slide_index: int):
         file_path = presentations[filename]["file_path"]
         slide_content = get_slide_content(file_path, slide_index)
         return slide_content
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/presentation-file/{filename}")
+async def get_presentation_file(filename: str):
+    """
+    Serve the actual PPT file for download or embedding
+    """
+    try:
+        if filename not in presentations:
+            raise HTTPException(status_code=404, detail="Presentation not found")
+        
+        file_path = presentations[filename]["file_path"]
+        
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on server")
+        
+        return FileResponse(
+            path=file_path,
+            filename=presentations[filename]["original_filename"],
+            media_type='application/vnd.ms-powerpoint'
+        )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -189,6 +221,25 @@ async def get_available_presentations():
         })
     
     return {"presentations": available}
+
+@app.get("/presentation-info/{filename}")
+async def get_presentation_info(filename: str):
+    """Get detailed information about a specific presentation"""
+    try:
+        if filename not in presentations:
+            raise HTTPException(status_code=404, detail="Presentation not found")
+        
+        pres = presentations[filename]
+        return {
+            "filename": filename,
+            "original_name": pres["original_filename"],
+            "total_slides": pres["data"]["total_slides"],
+            "file_path": pres["file_path"],
+            "slides": pres["data"]["slides"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():
