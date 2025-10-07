@@ -4,6 +4,7 @@ import os
 from PIL import Image
 import io
 import base64
+from pathlib import Path
 
 def process_ppt_file(file_path):
     """Process PPT file and extract slides with content and thumbnails"""
@@ -103,3 +104,14 @@ def extract_text_from_ppt(file_path):
         full_text.append(f"Slide {i+1}: " + " | ".join(slide_text))
     
     return "\n".join(full_text)
+
+def save_uploaded_ppt(file_content: bytes, filename: str) -> str:
+    """Save uploaded PPT file and return file path"""
+    upload_dir = Path("static/uploads")
+    upload_dir.mkdir(exist_ok=True)
+    
+    file_path = upload_dir / filename
+    with open(file_path, "wb") as buffer:
+        buffer.write(file_content)
+    
+    return str(file_path)
