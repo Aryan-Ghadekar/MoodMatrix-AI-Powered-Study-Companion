@@ -27,10 +27,15 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 ---
 
 
-##  Block Diagram  
-![alt text](assets/image.png)
+##  Block Diagram - Proposed Architecture Diagram  
+![alt text](assets/Proposed_System_Architecture.png)
 
+##  Audio and Visual Cognitive Load Estimation Block Diagram  
 
+<p align="center">
+  <img src="assets/Audio_Cognitive_Load.png" alt="Audio Cognitive Load" width="45%"/>
+  <img src="assets/Visual_Cognitive_Load_BlockDiagram.png" alt="Visual Cognitive Load" width="45%"/>
+</p>
 
 ## Getting Started  
 
