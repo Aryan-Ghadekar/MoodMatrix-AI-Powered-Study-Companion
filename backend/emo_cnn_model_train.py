@@ -1,3 +1,5 @@
+# Training code for training EfficientNet-B0 on Affectnet/FER2013 dataset 
+
 import os
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
