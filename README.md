@@ -18,7 +18,7 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 
 ### **Hardware**  
 - Jetson Nano  
-- Camera (for facial & posture recognition)  
+- High Quality Camera (for facial & posture recognition)  
 - Speaker & Microphone (for interaction)  
 
 ### **Software**  
