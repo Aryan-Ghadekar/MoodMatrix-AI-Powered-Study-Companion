@@ -4,3 +4,5 @@ __pycache__/
 static/
 .env
 backend/yolov8n.pt
+backend/venv-mediapipe/
+backend/venv-tf/
