@@ -17,7 +17,6 @@ def temporal_smoothing(emotion_sequence):
     pass
 
 
-
 # Load YOLO model
 yolo_model = YOLO("yolov8n.pt") # We can use yolov8s/yolov8m for better accuracy (heavier models)
 PERSON_CLASS_ID = 0
@@ -81,3 +80,5 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+
