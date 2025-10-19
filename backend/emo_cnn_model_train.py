@@ -1,5 +1,6 @@
+# Training code for training EfficientNet-B0 on Affectnet/FER2013 dataset 
+
 import os
-# Set environment variable for memory growth before any TF import
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 import tensorflow as tf
@@ -7,7 +8,7 @@ from tensorflow.keras import mixed_precision
 from tensorflow.keras.applications import EfficientNetB0
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, Rescaling, RandomRotation, RandomFlip, RandomZoom, RandomContrast
 from tensorflow.keras.models import Model, Sequential
-from sklearn.utils.class_weight import compute_class_weight  # Keep for verification if needed
+from sklearn.utils.class_weight import compute_class_weight  
 from sklearn.metrics import classification_report, confusion_matrix
 from google.colab import files
 
@@ -16,9 +17,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# =============================
+
 # GPU Detection and Configuration
-# =============================
+
 physical_gpus = tf.config.list_physical_devices('GPU')
 logical_gpus = tf.config.list_logical_devices('GPU')
 print(f"Physical GPUs: {len(physical_gpus)}, Logical GPUs: {len(logical_gpus)}")
@@ -37,9 +38,9 @@ else:
 # Enable mixed precision for speed on GPU
 mixed_precision.set_global_policy('mixed_float16')
 
-# =============================
+
 # 1. Paths and Class Names (Early Setup)
-# =============================
+print("Setting up paths and class names...")
 train_dir = "/content/drive/MyDrive/FER2013/train"
 val_dir = "/content/drive/MyDrive/FER2013/test"
 
@@ -51,9 +52,9 @@ num_classes = 7
 class_names = sorted([d for d in os.listdir(train_dir) if os.path.isdir(os.path.join(train_dir, d))])
 print(f"Class names: {class_names}")
 
-# =============================
+
 # 2. Compute Class Weights (ULTRA-FAST: Directory-based, no dataset loading)
-# =============================
+
 print("Computing class weights...")
 
 train_class_counts = {}
@@ -82,9 +83,9 @@ for class_name, count in train_class_counts.items():
 
 print("Class weights computed:", class_weights)
 
-# =============================
+
 # 3. Data Preprocessing with tf.data (Parallel Loading)
-# =============================
+
 AUTOTUNE = tf.data.AUTOTUNE
 
 # Load datasets with grayscale mode (FER2013 is grayscale; stack to RGB in preprocess)
@@ -117,7 +118,7 @@ augmentation_layer = Sequential([
     Rescaling(1./255)
 ], name='augmentation')
 
-# Fixed preprocess functions: Use tf.cond for conditional stacking (graph-compatible)
+
 def preprocess_train(image, label):
     # Stack grayscale (H,W,1) to RGB (H,W,3)
     image = tf.cond(
@@ -156,9 +157,9 @@ val_ds_final = val_ds_processed.cache().prefetch(AUTOTUNE)
 
 print("Datasets prepared successfully.")
 
-# =============================
-# 4. Build EfficientNet-B0
-# =============================
+
+# 4. Build EfficientNet-B0 (Base Model)
+
 print("Building model...")
 base_model = EfficientNetB0(weights="imagenet", include_top=False, input_shape=(img_size, img_size, 3))
 base_model.trainable = False
@@ -176,9 +177,9 @@ model.compile(optimizer=tf.keras.optimizers.Adam(1e-3),
 
 model.summary()
 
-# =============================
+
 # 5. Training
-# =============================
+
 callbacks = [
     tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
     tf.keras.callbacks.ModelCheckpoint("efficientnet_fer.h5", monitor='val_loss', save_best_only=True),
@@ -195,9 +196,9 @@ history = model.fit(
     verbose=1
 )
 
-# =============================
+
 # 6. Fine-tune (Unfreeze some layers)
-# =============================
+
 print("Starting fine-tuning...")
 base_model.trainable = True
 
@@ -230,16 +231,16 @@ history_finetune = model.fit(
     verbose=1
 )
 
-# =============================
+
 # 7. Save Final Model
-# =============================
+
 print("Saving model...")
 model.save("efficientnet_fer_final.h5")
 print("Model saved successfully.")
 
-# =============================
+
 # 8. Evaluate Model
-# =============================
+
 print("Evaluating model...")
 val_preds = model.predict(val_ds_final, verbose=1)
 y_pred = np.argmax(val_preds, axis=1)
@@ -271,9 +272,9 @@ with open("evaluation_metrics.txt", "w") as f:
 
 print("Evaluation metrics saved.")
 
-# =============================
-# 9. Visualization
-# =============================
+
+# 9. Data Visualization (Evaluation Metrics and Training Curves)
+
 def plot_history(history, history_finetune):
     # Merge histories (handle potential length differences from EarlyStopping)
     acc = history.history['accuracy'] + history_finetune.history['accuracy']
@@ -319,9 +320,9 @@ plt.close()
 
 print("Visualizations saved.")
 
-# =============================
+
 # 10. Download Results
-# =============================
+
 print("Downloading results...")
 files.download("efficientnet_fer_final.h5")
 files.download("classification_report.csv")

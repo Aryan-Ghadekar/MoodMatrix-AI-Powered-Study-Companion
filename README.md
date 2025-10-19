@@ -18,18 +18,32 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 
 ### **Hardware**  
 - Jetson Nano  
-- Camera (for facial & posture recognition)  
+- High Quality Camera (for facial & posture recognition)  
 - Speaker & Microphone (for interaction)  
 
 ### **Software**  
-- 
+- FastAPI
+- HTML, CSS, JS
+- Python
+- TensorFlow, PyTorch
+- MediaPipe
+- OpenCV
+- Librosa
+- Scikit-learn
+- NumPy, Pandas 
 
 ---
 
 
-##  Block Diagram  
-![alt text](assets/image.png)
+##  Block Diagram - Proposed Architecture Diagram  
+![alt text](assets/Proposed_System_Architecture.png)
 
+##  Audio and Visual Cognitive Load Estimation Block Diagram  
+
+<p align="center">
+  <img src="assets/Audio_Cognitive_Load_Block_Diagram.png" alt="Audio Cognitive Load" width="40%" height="800px" style="margin-right:70px;"/>
+  <img src="assets/Visual_Cognitive_Load_BlockDiagram1.png" alt="Visual Cognitive Load" width="40%" height="800px"/>
+</p>
 
 
 ## Getting Started  
