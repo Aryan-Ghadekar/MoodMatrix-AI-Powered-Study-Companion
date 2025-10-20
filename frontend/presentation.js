@@ -195,17 +195,114 @@ function updateSlideDisplay() {
     
     currentSlide.textContent = `Slide ${currentSlideIndex + 1} of ${currentPresentation.total_slides}`;
     
-    // Update slide content display
-    presentationFrame.innerHTML = `
-        <div>
-            <h3>Slide ${currentSlideIndex + 1}</h3>
-            <p>${currentPresentation.slides[currentSlideIndex]?.content || 'No content available'}</p>
-        </div>
-    `;
+    // Get the current slide data
+    const slideData = currentPresentation.slides[currentSlideIndex];
+    
+    console.log('Slide data:', slideData); // Debug log
+    
+    // Check if we have an image URL for this slide
+    if (slideData && slideData.image_url) {
+        console.log('Using image URL:', slideData.image_url); // Debug log
+        
+        // Display slide image with loading state
+        presentationFrame.innerHTML = `
+            <div class="slide-image-container">
+                <div class="image-loading">Loading slide image...</div>
+                <img src="${API_BASE_URL}${slideData.image_url}?t=${new Date().getTime()}" 
+                     alt="Slide ${currentSlideIndex + 1}" 
+                     class="slide-image"
+                     onload="this.parentElement.querySelector('.image-loading').style.display = 'none'"
+                     onerror="handleImageError(this)">
+                <div class="slide-content-overlay">
+                    <h3>Slide ${currentSlideIndex + 1}</h3>
+                    ${slideData.content ? `<p class="slide-preview-text">${slideData.content.substring(0, 150)}${slideData.content.length > 150 ? '...' : ''}</p>` : ''}
+                </div>
+            </div>
+        `;
+    } else {
+        console.log('No image URL, using fallback'); // Debug log
+        // Fallback to text content
+        presentationFrame.innerHTML = `
+            <div class="slide-text-content">
+                <h3>Slide ${currentSlideIndex + 1}</h3>
+                <div class="slide-text">
+                    ${slideData?.content || 'No content available'}
+                </div>
+                <div class="image-unavailable">
+                    <i>🖼️</i>
+                    <p>Slide preview image not available</p>
+                    <button class="btn btn-secondary" onclick="tryLoadImage()">Try Load Image</button>
+                </div>
+            </div>
+        `;
+    }
     
     // Update navigation buttons
     prevSlideBtn.disabled = currentSlideIndex === 0;
     nextSlideBtn.disabled = currentSlideIndex === currentPresentation.total_slides - 1;
+}
+
+function handleImageError(imgElement) {
+    console.log('Image load error'); // Debug log
+    const container = imgElement.parentElement;
+    const loadingElement = container.querySelector('.image-loading');
+    if (loadingElement) {
+        loadingElement.textContent = 'Image not available, using API fallback...';
+        loadingElement.style.color = '#ff9e00';
+    }
+    
+    // Try to load the image via the API endpoint as fallback
+    const slideData = currentPresentation.slides[currentSlideIndex];
+    if (slideData && currentPresentation) {
+        fetch(`${API_BASE_URL}/slide-image/${currentPresentation.filename}/${currentSlideIndex}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API call failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.base64_image) {
+                    imgElement.src = `data:image/png;base64,${data.base64_image}`;
+                    if (loadingElement) {
+                        loadingElement.style.display = 'none';
+                    }
+                } else {
+                    throw new Error('No base64 image in response');
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load fallback image:', error);
+                if (loadingElement) {
+                    loadingElement.textContent = 'Image not available';
+                    loadingElement.style.color = '#ef476f';
+                }
+                // Show text content as final fallback
+                showTextFallback();
+            });
+    } else {
+        showTextFallback();
+    }
+}
+
+function showTextFallback() {
+    const slideData = currentPresentation.slides[currentSlideIndex];
+    presentationFrame.innerHTML = `
+        <div class="slide-text-content">
+            <h3>Slide ${currentSlideIndex + 1}</h3>
+            <div class="slide-text">
+                ${slideData?.content || 'No content available'}
+            </div>
+            <div class="image-unavailable">
+                <i>🖼️</i>
+                <p>Unable to load slide image</p>
+            </div>
+        </div>
+    `;
+}
+
+function tryLoadImage() {
+    updateSlideDisplay();
 }
 
 function showPreviousSlide() {
