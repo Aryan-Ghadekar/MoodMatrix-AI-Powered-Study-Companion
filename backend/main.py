@@ -6,10 +6,15 @@ import os
 from ppt import process_ppt_file, get_slide_content, extract_text_from_ppt
 from quiz import quiz_generator, QuizGenerator
 from show import ensure_slide_images,  create_placeholder_base64
+from explaination import explanation_generator, ExplanationGenerator
 from typing import List, Optional
 import uuid
 from pathlib import Path
 import logging
+import base64
+from io import BytesIO
+from gtts import gTTS
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -286,6 +291,140 @@ async def health_check():
         "upload_directory": os.path.exists("static/uploads"),
         "images_directory": images_dir_exists,
         "total_slide_images": images_count
+    }
+
+@app.post("/generate-tts")
+async def generate_tts(text: str):
+    """
+    Generate Text-to-Speech audio from text
+    """
+    try:
+        # Validate text length
+        if len(text) > 4000:
+            raise HTTPException(status_code=400, detail="Text too long for TTS. Maximum 4000 characters.")
+        
+        # Create gTTS object
+        tts = gTTS(text=text, lang='en', slow=False)
+        
+        # Save to bytes buffer
+        audio_buffer = BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+        
+        # Convert to base64
+        audio_base64 = base64.b64encode(audio_buffer.getvalue()).decode('utf-8')
+        
+        return {
+            "success": True,
+            "audio_base64": audio_base64,
+            "text_length": len(text),
+            "message": "TTS generated successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"TTS generation failed: {e}")
+        # Fallback to browser TTS
+        return {
+            "success": True,
+            "text": text,
+            "message": "Use browser's speech synthesis",
+            "use_browser_tts": True
+        }
+
+@app.post("/generate-explanation/{filename}")
+async def generate_explanation(
+    filename: str,
+    explanation_type: str = Query("detailed", regex="^(detailed|simple|key_points)$"),
+    slide_numbers: Optional[List[int]] = Query(None),
+    slide_by_slide: bool = Query(False)
+):
+    """
+    Generate explanation from presentation content using AI
+    """
+    try:
+        if explanation_generator is None:
+            raise HTTPException(status_code=503, detail="Explanation service is not available")
+        
+        if filename not in presentations:
+            raise HTTPException(status_code=404, detail="Presentation not found")
+        
+        file_path = presentations[filename]["file_path"]
+        presentation_data = presentations[filename]["data"]
+        
+        # Validate slide numbers if provided
+        if slide_numbers:
+            max_slides = presentation_data["total_slides"]
+            invalid_slides = [s for s in slide_numbers if s < 1 or s > max_slides]
+            if invalid_slides:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid slide numbers: {invalid_slides}. Available: 1-{max_slides}"
+                )
+        else:
+            # Use all slides if none specified
+            slide_numbers = list(range(1, presentation_data["total_slides"] + 1))
+        
+        # Generate explanation based on selection
+        if slide_by_slide:
+            # Generate individual explanations for each slide
+            explanation_data = explanation_generator.generate_slide_by_slide_explanation(
+                file_path, slide_numbers
+            )
+        else:
+            # Generate combined explanation
+            if slide_numbers:
+                explanation_data = explanation_generator.generate_explanation_by_slides(
+                    file_path, slide_numbers, explanation_type
+                )
+            else:
+                ppt_text = extract_text_from_ppt(file_path)
+                explanation_data = explanation_generator.generate_explanation_from_content(
+                    ppt_text, explanation_type
+                )
+        
+        # Add presentation metadata
+        explanation_data["presentation_info"] = {
+            "filename": filename,
+            "original_name": presentations[filename]["original_filename"],
+            "slides_used": slide_numbers,
+            "total_slides": presentation_data["total_slides"],
+            "explanation_type": explanation_type,
+            "slide_by_slide": slide_by_slide
+        }
+        
+        return explanation_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Explanation generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Explanation generation failed: {str(e)}")
+
+@app.get("/explanation-types")
+async def get_explanation_types():
+    """Get available explanation types"""
+    return {
+        "explanation_types": [
+            {
+                "value": "detailed",
+                "label": "Detailed Explanation",
+                "description": "Comprehensive, in-depth explanations covering all concepts"
+            },
+            {
+                "value": "simple", 
+                "label": "Simple Explanation",
+                "description": "Simplified explanations suitable for beginners"
+            },
+            {
+                "value": "key_points",
+                "label": "Key Points",
+                "description": "Main key points and takeaways from the content"
+            }
+        ],
+        "slide_by_slide": {
+            "label": "Slide-by-Slide Explanation",
+            "description": "Generate individual explanations for each selected slide"
+        }
     }
 
 if __name__ == "__main__":
