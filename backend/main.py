@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse, FileResponse
 import os
 from ppt import process_ppt_file, get_slide_content, extract_text_from_ppt
 from quiz import quiz_generator, QuizGenerator
-from show import ensure_slide_images, get_slide_image_base64, create_placeholder_base64
+from show import ensure_slide_images,  create_placeholder_base64
 from typing import List, Optional
 import uuid
 from pathlib import Path
