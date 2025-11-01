@@ -13,6 +13,7 @@ let userAnswers = {};
 let quizTimer = null;
 let timeElapsed = 0;
 let currentQuestionIndex = 0;
+let isPresenting = false;
 
 // DOM Elements
 const uploadArea = document.getElementById('uploadArea');
@@ -20,7 +21,7 @@ const fileInput = document.getElementById('fileInput');
 const uploadBtn = document.getElementById('uploadBtn');
 const uploadLoading = document.getElementById('uploadLoading');
 const presentationView = document.getElementById('presentationView');
-const presentationFrame = document.getElementById('presentationFrame');
+const presentationFrame = document.getElementById('presentationFrame'); 
 const presentationTitle = document.getElementById('presentationTitle');
 const slideCount = document.getElementById('slideCount');
 const currentSlide = document.getElementById('currentSlide');
@@ -78,6 +79,227 @@ submitQuizBtn.addEventListener('click', submitQuiz);
 
 // Initialize
 document.addEventListener('DOMContentLoaded', loadAvailablePresentations);
+
+// Presentation mode event listeners
+document.getElementById('presentModeBtn').addEventListener('click', startPresentationMode);
+document.getElementById('exitPresentMode').addEventListener('click', exitPresentationMode);
+document.getElementById('prevSlideModal').addEventListener('click', showPreviousSlideModal);
+document.getElementById('nextSlideModal').addEventListener('click', showNextSlideModal);
+
+// Keyboard shortcuts for presentation mode
+document.addEventListener('keydown', handlePresentationKeyboard);
+
+
+function startPresentationMode() {
+    if (!currentPresentation) return;
+    
+    isPresenting = true;
+    const presentationModal = document.getElementById('presentationModal');
+    presentationModal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Update modal with current presentation info
+    document.getElementById('presentationTitleModal').textContent = currentPresentation.original_name;
+    updatePresentationSlide();
+    
+    // Refresh icons after a short delay to ensure DOM is updated
+    setTimeout(() => {
+        feather.replace();
+    }, 100);
+}
+
+function exitPresentationMode() {
+    isPresenting = false;
+    const presentationModal = document.getElementById('presentationModal');
+    presentationModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function updatePresentationSlide() {
+    if (!currentPresentation || !isPresenting) return;
+    
+    const slideData = currentPresentation.slides[currentSlideIndex];
+    const contentContainer = document.getElementById('presentationContentModal');
+    const slideCounter = document.getElementById('slideCounterModal');
+    const progressFill = document.getElementById('progressFill');
+    
+    // Update slide counter
+    slideCounter.textContent = `Slide ${currentSlideIndex + 1} of ${currentPresentation.total_slides}`;
+    
+    // Update progress bar
+    const progress = ((currentSlideIndex + 1) / currentPresentation.total_slides) * 100;
+    progressFill.style.width = `${progress}%`;
+    
+    // Display slide content
+    if (slideData && slideData.image_url) {
+        contentContainer.innerHTML = `
+            <div class="presentation-slide">
+                <img src="${API_BASE_URL}${slideData.image_url}?t=${new Date().getTime()}" 
+                     alt="Slide ${currentSlideIndex + 1}"
+                     onerror="handlePresentationImageError(this)"
+                     style="max-width: 95%; max-height: 95vh;">
+            </div>
+        `;
+    } else {
+        // Fallback to text content
+        contentContainer.innerHTML = `
+            <div class="slide-text-presentation">
+                <h3>Slide ${currentSlideIndex + 1}</h3>
+                <div class="slide-text">
+                    ${slideData?.content || 'No content available'}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Update navigation buttons state
+    const prevBtn = document.getElementById('prevSlideModal');
+    const nextBtn = document.getElementById('nextSlideModal');
+    
+    if (prevBtn) prevBtn.disabled = currentSlideIndex === 0;
+    if (nextBtn) nextBtn.disabled = currentSlideIndex === currentPresentation.total_slides - 1;
+    
+    // Refresh icons
+    feather.replace();
+}
+
+function handlePresentationImageError(imgElement) {
+    const slideData = currentPresentation.slides[currentSlideIndex];
+    const contentContainer = document.getElementById('presentationContentModal');
+    
+    contentContainer.innerHTML = `
+        <div class="slide-text-presentation">
+            <h3>Slide ${currentSlideIndex + 1}</h3>
+            <div class="slide-text">
+                ${slideData?.content || 'No content available'}
+            </div>
+        </div>
+    `;
+}
+
+function showPreviousSlideModal() {
+    if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        updatePresentationSlide();
+        updateSlideDisplay(); // Also update regular view
+    }
+}
+
+function showNextSlideModal() {
+    if (currentPresentation && currentSlideIndex < currentPresentation.total_slides - 1) {
+        currentSlideIndex++;
+        updatePresentationSlide();
+        updateSlideDisplay(); // Also update regular view
+    }
+}
+
+function handlePresentationKeyboard(event) {
+    if (!isPresenting) return;
+    
+    switch(event.key) {
+        case 'ArrowLeft':
+        case 'PageUp':
+            event.preventDefault();
+            showPreviousSlideModal();
+            break;
+        case 'ArrowRight':
+        case 'PageDown':
+        case ' ':
+            event.preventDefault();
+            showNextSlideModal();
+            break;
+        case 'Escape':
+            event.preventDefault();
+            exitPresentationMode();
+            break;
+        case 'F5':
+            event.preventDefault();
+            break;
+    }
+}
+
+// Update the selectPresentation function to show/hide present button
+async function selectPresentation(filename) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/presentation-info/${filename}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentPresentation = data;
+            currentSlideIndex = 0;
+            
+            // Update UI
+            presentationTitle.textContent = data.original_name;
+            slideCount.textContent = `Total Slides: ${data.total_slides}`;
+            updateSlideDisplay();
+            
+            // Show presentation view and present button
+            presentationView.style.display = 'block';
+            document.getElementById('presentModeBtn').style.display = 'flex';
+            
+            // Enable quiz generation
+            generateQuizBtn.disabled = false;
+            
+            // Update presentation list
+            renderPresentationList();
+        } else {
+            showError('Failed to load presentation data');
+        }
+    } catch (error) {
+        showError('Network error: ' + error.message);
+    }
+}
+
+// Update the updateSlideDisplay function to sync with presentation mode
+function updateSlideDisplay() {
+    if (!currentPresentation) return;
+    
+    currentSlide.textContent = `Slide ${currentSlideIndex + 1} of ${currentPresentation.total_slides}`;
+    
+    // Get the current slide data
+    const slideData = currentPresentation.slides[currentSlideIndex];
+    
+    // Check if we have an image URL for this slide
+    if (slideData && slideData.image_url) {
+        presentationFrame.innerHTML = `
+            <div class="slide-image-container">
+                <div class="image-loading">Loading slide image...</div>
+                <img src="${API_BASE_URL}${slideData.image_url}?t=${new Date().getTime()}" 
+                     alt="Slide ${currentSlideIndex + 1}" 
+                     class="slide-image"
+                     onload="this.parentElement.querySelector('.image-loading').style.display = 'none'"
+                     onerror="handleImageError(this)">
+                <div class="slide-content-overlay">
+                    <h3>Slide ${currentSlideIndex + 1}</h3>
+                    ${slideData.content ? `<p class="slide-preview-text">${slideData.content.substring(0, 150)}${slideData.content.length > 150 ? '...' : ''}</p>` : ''}
+                </div>
+            </div>
+        `;
+    } else {
+        presentationFrame.innerHTML = `
+            <div class="slide-text-content">
+                <h3>Slide ${currentSlideIndex + 1}</h3>
+                <div class="slide-text">
+                    ${slideData?.content || 'No content available'}
+                </div>
+                <div class="image-unavailable">
+                    <i>🖼️</i>
+                    <p>Slide preview image not available</p>
+                    <button class="btn btn-secondary" onclick="tryLoadImage()">Try Load Image</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Update navigation buttons
+    prevSlideBtn.disabled = currentSlideIndex === 0;
+    nextSlideBtn.disabled = currentSlideIndex === currentPresentation.total_slides - 1;
+    
+    // If in presentation mode, update the presentation view as well
+    if (isPresenting) {
+        updatePresentationSlide();
+    }
+}
 
 // Functions
 async function handleFileUpload() {
