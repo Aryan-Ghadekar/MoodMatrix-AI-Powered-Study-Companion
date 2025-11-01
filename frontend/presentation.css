@@ -640,3 +640,344 @@
     50% { opacity: 0.5; }
     100% { opacity: 1; }
 }
+
+/* Slide Image Styles */
+.slide-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slide-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slide-content-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(15, 23, 42, 0.9));
+    padding: 20px;
+    color: white;
+}
+
+.slide-content-overlay h3 {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.slide-content-overlay p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.slide-text-content {
+    padding: 20px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.slide-text-content h3 {
+    margin-bottom: 15px;
+    color: var(--primary);
+}
+
+.slide-text {
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+}
+
+/* Loading states for images */
+.slide-image.loading {
+    opacity: 0.7;
+    filter: blur(2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .slide-content-overlay {
+        padding: 10px;
+    }
+    
+    .slide-content-overlay h3 {
+        font-size: 1.1rem;
+    }
+    
+    .slide-content-overlay p {
+        font-size: 0.8rem;
+    }
+}
+/* Slide Image Styles */
+.slide-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+}
+
+.slide-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.image-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.slide-content-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(15, 23, 42, 0.95));
+    padding: 20px;
+    color: white;
+    backdrop-filter: blur(5px);
+}
+
+.slide-content-overlay h3 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.slide-preview-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.slide-text-content {
+    padding: 20px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.slide-text-content h3 {
+    margin-bottom: 15px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+}
+
+.slide-text {
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+}
+
+.image-unavailable {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+}
+
+.image-unavailable i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .slide-content-overlay {
+        padding: 15px;
+    }
+    
+    .slide-content-overlay h3 {
+        font-size: 1.1rem;
+    }
+    
+    .slide-preview-text {
+        font-size: 0.8rem;
+    }
+    
+    .slide-text-content {
+        padding: 15px;
+    }
+}
+/* Add this to your CSS file */
+.presentation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.presentation-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+}
+
+.presentation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-bottom: 1px solid #333;
+    backdrop-filter: blur(10px);
+}
+
+.presentation-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.presentation-info span:first-child {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.slide-counter {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.presentation-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-control:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-control:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.presentation-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #000;
+    overflow: hidden;
+}
+
+.presentation-slide {
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.presentation-slide img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.slide-text-presentation {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    padding: 40px;
+    border-radius: 10px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.slide-text-presentation h3 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.presentation-progress {
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Slide actions in regular view */
+.slide-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-accent {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-accent:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+}

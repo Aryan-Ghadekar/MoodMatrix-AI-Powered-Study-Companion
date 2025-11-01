@@ -51,8 +51,15 @@
                             <button class="btn" id="prevSlide">Previous</button>
                             <span id="currentSlide">Slide 1 of 10</span>
                             <button class="btn" id="nextSlide">Next</button>
+                            
+
+                            <button class="btn btn-accent" id="presentModeBtn" >
+                                <i data-feather="play">Present</i> 
+                            </button>
                         </div>
-                        <button class="btn btn-secondary" id="viewInNewTab">Open in New Tab</button>
+                        <div class="slide-actions">
+                            <button class="btn btn-secondary" id="viewInNewTab">Open in New Tab</button>
+                        </div>
                     </div>
                 </div>
 
@@ -132,6 +139,39 @@
             <button class="btn btn-accent" id="submitQuizBtn" style="display: none;">
                 <i data-feather="check-circle"></i> Submit Quiz
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Presentation Modal -->
+<div id="presentationModal" class="presentation-modal">
+    <div class="presentation-container">
+        <div class="presentation-header">
+            <div class="presentation-info">
+                <span id="presentationTitleModal">Presentation Title</span>
+                <span class="slide-counter" id="slideCounterModal">Slide 1 of 10</span>
+            </div>
+            <div class="presentation-controls">
+                <button class="btn btn-control" id="prevSlideModal">
+                    <i data-feather="chevron-left"></i>
+                </button>
+                <button class="btn btn-control" id="nextSlideModal">
+                    <i data-feather="chevron-right"></i>
+                </button>
+                <button class="btn btn-control" id="exitPresentMode">
+                    <i data-feather="x"></i> Exit
+                </button>
+            </div>
+        </div>
+        
+        <div class="presentation-content" id="presentationContentModal">
+            <!-- Slide content will be loaded here -->
+        </div>
+        
+        <div class="presentation-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
         </div>
     </div>
 </div>
