@@ -29,6 +29,7 @@ def test_image_generation():
         print(f"  - image_path: {slide.get('image_path', 'NOT SET')}")
         if slide.get('image_path'):
             print(f"  - file exists: {os.path.exists(slide['image_path'])}")
-
+    
+    
 if __name__ == "__main__":
     test_image_generation()

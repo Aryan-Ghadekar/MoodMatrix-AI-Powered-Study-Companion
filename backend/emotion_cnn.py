@@ -1,3 +1,5 @@
+# File to be deleted
+
 # Enhanced Real-time Multi-Face Emotion Detection using DeepFace and OpenCV
 # Modifications for Accuracy:
 # - Switched to 'retinaface' backend for superior multi-face detection (handles 20-30 faces in crowds better, even with occlusions/angles).
