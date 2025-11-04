@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dyanamic Timetable</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="timetable.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo" onclick="showSection('hero')">
+                <i class="fas fa-brain logo-icon"></i>
+                MoodMatrix
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" onclick="showSection('hero')">Home</a></li>
+                <li><a href="#" onclick="showSection('dashboard')">Dashboard</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>Active</span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero" id="heroSection">
+        <div class="hero-content fade-in">
+            <!-- Wrapped tables in a container for side-by-side layout -->
+            <div class="tables-container">
+                <!-- Cognitive Load Table -->
+                <div class="table-wrapper">
+                    <h2 class="table-title"><i class="fas fa-brain"></i> Cognitive Load Data (Editable)</h2>
+                    <div class="table-scroll">
+                        <table id="cognitiveTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Time Slot</th>
+                                    <th>Focus Level (0-1)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>09:00-10:00</td>
+                                    <td><input type="number" step="0.01" value="0.9"></td>
+                                </tr>
+                                <tr>
+                                    <td>10:00-11:00</td>
+                                    <td><input type="number" step="0.01" value="0.85"></td>
+                                </tr>
+                                <tr>
+                                    <td>11:00-12:00</td>
+                                    <td><input type="number" step="0.01" value="0.7"></td>
+                                </tr>
+                                <tr>
+                                    <td>14:00-15:00</td>
+                                    <td><input type="number" step="0.01" value="0.5"></td>
+                                </tr>
+                                <tr>
+                                    <td>18:00-19:00</td>
+                                    <td><input type="number" step="0.01" value="0.65"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Subjects Table -->
+                <div class="table-wrapper">
+                    <h2 class="table-title"><i class="fas fa-book"></i> Subjects & Difficulty (Editable)</h2>
+                    <div class="table-scroll">
+                        <table id="subjectsTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Difficulty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" value="Math"></td>
+                                    <td>
+                                        <select>
+                                            <option>Hard</option>
+                                            <option>Medium</option>
+                                            <option>Easy</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" value="Physics"></td>
+                                    <td>
+                                        <select>
+                                            <option>Hard</option>
+                                            <option selected>Medium</option>
+                                            <option>Easy</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" value="Chemistry"></td>
+                                    <td>
+                                        <select>
+                                            <option>Hard</option>
+                                            <option selected>Medium</option>
+                                            <option>Easy</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" value="English"></td>
+                                    <td>
+                                        <select>
+                                            <option>Hard</option>
+                                            <option>Medium</option>
+                                            <option selected>Easy</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" value="History"></td>
+                                    <td>
+                                        <select>
+                                            <option>Hard</option>
+                                            <option>Medium</option>
+                                            <option selected>Easy</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons Container -->
+            <div class="buttons-container">
+                <button id="generateBtn" class="btn btn-primary">
+                    <i class="fas fa-wand-magic-sparkles"></i> Generate Timetable
+                </button>
+                <button id="editBtn" class="btn btn-secondary" style="display:none;">
+                    <i class="fas fa-pencil"></i> Edit Timetable
+                </button>
+            </div>
+
+            <!-- Generated Timetable Section -->
+            <div id="timetable-section" class="timetable-section">
+                <h2 class="section-title"><i class="fas fa-clock"></i> Generated Timetable</h2>
+                <div class="timetable-wrapper">
+                    <table id="timetableTable" class="timetable">
+                        <thead>
+                            <tr>
+                                <th>Time Slot</th>
+                                <th>Subject</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const generateBtn = document.getElementById("generateBtn");
+        const editBtn = document.getElementById("editBtn");
+
+        generateBtn.addEventListener("click", async () => {
+            // Collect cognitive load data
+            const cognitiveData = {};
+            document.querySelectorAll("#cognitiveTable tbody tr").forEach((row, i) => {
+                const time = row.cells[0].textContent.trim();
+                const value = parseFloat(row.cells[1].querySelector("input").value);
+                cognitiveData[time] = value;
+            });
+
+            // Collect subject data with difficulty
+            const subjects = {};
+            document.querySelectorAll("#subjectsTable tbody tr").forEach((row, i) => {
+                const name = row.cells[0].querySelector("input").value.trim();
+                const difficulty = row.cells[1].querySelector("select").value;
+                // Convert difficulty to numeric weight
+                const weight = difficulty === "Hard" ? 5 : difficulty === "Medium" ? 3 : 1;
+                subjects[name] = weight;
+            });
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/timetable/generate_timetable", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ cognitive_data: cognitiveData, subjects }),
+                });
+
+                const data = await response.json();
+                displayTimetable(data.timetable);
+            } catch (error) {
+                alert("Error generating timetable: " + error.message);
+            }
+        });
+
+        function displayTimetable(timetable) {
+            const tbody = document.querySelector("#timetableTable tbody");
+            tbody.innerHTML = "";
+
+            for (const [slot, subject] of Object.entries(timetable)) {
+                const row = tbody.insertRow();
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+
+                cell1.textContent = slot;
+                cell2.innerHTML = `<input type="text" value="${subject}" disabled>`;
+            }
+
+            document.getElementById("timetable-section").style.display = "block";
+            editBtn.style.display = "inline-flex";
+            editBtn.scrollIntoView({ behavior: "smooth" });
+        }
+
+        editBtn.addEventListener("click", () => {
+            const inputs = document.querySelectorAll("#timetableTable input");
+            const editable = inputs[0].disabled; // toggle state
+            inputs.forEach(inp => inp.disabled = !editable);
+            editBtn.innerHTML = editable ? '<i class="fas fa-floppy-disk"></i> Save Timetable' : '<i class="fas fa-pencil"></i> Edit Timetable';
+        });
+    </script>
+</body>
+
+</html>

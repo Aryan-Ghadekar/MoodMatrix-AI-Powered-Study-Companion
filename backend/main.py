@@ -11,6 +11,7 @@ from typing import List, Optional
 import uuid
 from pathlib import Path
 import logging
+from dyanamic_timetable import router
 import base64
 from io import BytesIO
 from gtts import gTTS
@@ -21,6 +22,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="SlideSense API")
+app.include_router(router)
 
 # CORS middleware
 app.add_middleware(
@@ -30,14 +32,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Create necessary directories
 os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("static/presentations", exist_ok=True)
 os.makedirs("static/images", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Store presentations in memory (in production, use a database)
 presentations = {}
 
 @app.get("/")
@@ -113,7 +112,7 @@ async def get_presentation_data(filename: str):
     except Exception as e:
         logger.error(f"Error getting presentation data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 @app.get("/slide/{filename}/{slide_index}")
 async def get_slide_data(filename: str, slide_index: int):
     try:
