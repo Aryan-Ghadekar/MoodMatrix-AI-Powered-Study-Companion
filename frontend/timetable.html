@@ -35,6 +35,13 @@
 
     <section class="hero" id="heroSection">
         <div class="hero-content fade-in">
+            <!-- Add mode toggle button -->
+            <div class="mode-toggle-container">
+                <button id="modeToggleBtn" class="btn btn-toggle">
+                    <i class="fas fa-calendar"></i> Switch to Hourly Mode
+                </button>
+            </div>
+
             <!-- Wrapped tables in a container for side-by-side layout -->
             <div class="tables-container">
                 <!-- Cognitive Load Table -->
@@ -172,21 +179,80 @@
     </section>
 
     <script>
+        let isHourlyMode = true;
+
         const generateBtn = document.getElementById("generateBtn");
         const editBtn = document.getElementById("editBtn");
+        const modeToggleBtn = document.getElementById("modeToggleBtn");
+
+        modeToggleBtn.addEventListener("click", () => {
+            isHourlyMode = !isHourlyMode;
+            updateCognitiveTable();
+            modeToggleBtn.textContent = isHourlyMode
+                ? '\ufaff Switch to Daily Mode'
+                : '\uf133 Switch to Hourly Mode';
+        });
+
+        function updateCognitiveTable() {
+            const tbody = document.querySelector("#cognitiveTable tbody");
+            tbody.innerHTML = "";
+
+            if (isHourlyMode) {
+                // Hourly mode: time slots
+                const slots = [
+                    { time: "09:00-10:00", value: 0.9 },
+                    { time: "10:00-11:00", value: 0.85 },
+                    { time: "11:00-12:00", value: 0.7 },
+                    { time: "14:00-15:00", value: 0.5 },
+                    { time: "18:00-19:00", value: 0.65 }
+                ];
+                slots.forEach(slot => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = slot.time;
+                    const input = document.createElement("input");
+                    input.type = "number";
+                    input.step = "0.01";
+                    input.value = slot.value;
+                    row.insertCell(1).appendChild(input);
+                });
+            } else {
+                // Daily mode: days of week
+                const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                const values = [0.9, 0.6, 0.7, 0.5, 0.8, 0.4, 0.3];
+                days.forEach((day, i) => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = day;
+                    const input = document.createElement("input");
+                    input.type = "number";
+                    input.step = "0.01";
+                    input.value = values[i];
+                    row.insertCell(1).appendChild(input);
+                });
+            }
+        }
 
         generateBtn.addEventListener("click", async () => {
-            // Collect cognitive load data
-            const cognitiveData = {};
-            document.querySelectorAll("#cognitiveTable tbody tr").forEach((row, i) => {
-                const time = row.cells[0].textContent.trim();
-                const value = parseFloat(row.cells[1].querySelector("input").value);
-                cognitiveData[time] = value;
-            });
+            let cognitiveData = {};
+
+            if (isHourlyMode) {
+                // Hourly mode: use time slots as keys
+                document.querySelectorAll("#cognitiveTable tbody tr").forEach((row) => {
+                    const time = row.cells[0].textContent.trim();
+                    const value = parseFloat(row.cells[1].querySelector("input").value);
+                    cognitiveData[time] = value;
+                });
+            } else {
+                // Daily mode: use day names as keys
+                document.querySelectorAll("#cognitiveTable tbody tr").forEach((row) => {
+                    const day = row.cells[0].textContent.trim();
+                    const value = parseFloat(row.cells[1].querySelector("input").value);
+                    cognitiveData[day] = value;
+                });
+            }
 
             // Collect subject data with difficulty
             const subjects = {};
-            document.querySelectorAll("#subjectsTable tbody tr").forEach((row, i) => {
+            document.querySelectorAll("#subjectsTable tbody tr").forEach((row) => {
                 const name = row.cells[0].querySelector("input").value.trim();
                 const difficulty = row.cells[1].querySelector("select").value;
                 // Convert difficulty to numeric weight
@@ -201,8 +267,11 @@
                     body: JSON.stringify({ cognitive_data: cognitiveData, subjects }),
                 });
 
+                // const data = await response.json();
+                // displayTimetable(data.timetable);
                 const data = await response.json();
-                displayTimetable(data.timetable);
+                displayTimetable(data.weekly_timetable);
+
             } catch (error) {
                 alert("Error generating timetable: " + error.message);
             }
@@ -212,13 +281,16 @@
             const tbody = document.querySelector("#timetableTable tbody");
             tbody.innerHTML = "";
 
-            for (const [slot, subject] of Object.entries(timetable)) {
+            for (const [slot, subjects] of Object.entries(timetable)) {
                 const row = tbody.insertRow();
                 const cell1 = row.insertCell(0);
                 const cell2 = row.insertCell(1);
 
                 cell1.textContent = slot;
-                cell2.innerHTML = `<input type="text" value="${subject}" disabled>`;
+
+                // Handle subjects as array (multiple subjects per slot) or string
+                const subjectText = Array.isArray(subjects) ? subjects.join(", ") : subjects;
+                cell2.innerHTML = `<input type="text" value="${subjectText}" disabled>`;
             }
 
             document.getElementById("timetable-section").style.display = "block";
