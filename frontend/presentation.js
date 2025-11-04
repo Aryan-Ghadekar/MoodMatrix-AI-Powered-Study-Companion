@@ -1056,7 +1056,7 @@ function updateSlideDisplay() {
     }
 }
 
-// Functions
+// Update the handleFileUpload function
 async function handleFileUpload() {
     if (!fileInput.files.length) return;
     
@@ -1085,8 +1085,21 @@ async function handleFileUpload() {
         
         if (response.ok && data.success) {
             showSuccess('Presentation uploaded successfully!');
+            
+            // Clear the file input
+            fileInput.value = '';
+            
+            // Reload and display the presentations
             await loadAvailablePresentations();
-            await selectPresentation(data.filename);
+            
+            // Automatically select the newly uploaded presentation
+            if (data.filename) {
+                await selectPresentation(data.filename);
+            }
+            
+            // Show the presentation selector
+            presentationSelector.style.display = 'block';
+            
         } else {
             showError(data.detail || 'Failed to upload presentation');
         }
@@ -1097,6 +1110,7 @@ async function handleFileUpload() {
     }
 }
 
+// Update the loadAvailablePresentations function to ensure it shows the selector
 async function loadAvailablePresentations() {
     try {
         const response = await fetch(`${API_BASE_URL}/available-presentations`);
@@ -1106,10 +1120,17 @@ async function loadAvailablePresentations() {
             availablePresentations = data.presentations || [];
             renderPresentationList();
             
+            // Always show the selector if there are presentations
             if (availablePresentations.length > 0) {
                 presentationSelector.style.display = 'block';
+                
+                // If no presentation is currently selected, select the first one
+                if (!currentPresentation && availablePresentations.length > 0) {
+                    await selectPresentation(availablePresentations[0].filename);
+                }
             } else {
                 presentationSelector.style.display = 'none';
+                presentationView.style.display = 'none';
             }
         }
     } catch (error) {
@@ -1117,26 +1138,44 @@ async function loadAvailablePresentations() {
     }
 }
 
+// Update the renderPresentationList function to better handle the list
 function renderPresentationList() {
     presentationList.innerHTML = '';
     
     if (availablePresentations.length === 0) {
-        presentationList.innerHTML = '<div class="presentation-item">No presentations available</div>';
+        presentationList.innerHTML = '<div class="presentation-item" style="color: var(--text-secondary); font-style: italic;">No presentations available. Upload a PPT file to get started.</div>';
         return;
     }
     
-    availablePresentations.forEach(presentation => {
+    // Sort presentations by upload date (newest first)
+    const sortedPresentations = [...availablePresentations].sort((a, b) => {
+        return new Date(b.upload_date || 0) - new Date(a.upload_date || 0);
+    });
+    
+    sortedPresentations.forEach(presentation => {
         const item = document.createElement('div');
         item.className = 'presentation-item';
+        
+        // Highlight the currently selected presentation
         if (currentPresentation && currentPresentation.filename === presentation.filename) {
             item.classList.add('active');
         }
-        item.textContent = presentation.original_name;
+        
+        // Create a more informative presentation item
+        const uploadDate = presentation.upload_date ? new Date(presentation.upload_date).toLocaleDateString() : 'Recently uploaded';
+        item.innerHTML = `
+            <div style="font-weight: 600;">${presentation.original_name}</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                ${presentation.total_slides || 0} slides • ${uploadDate}
+            </div>
+        `;
+        
         item.addEventListener('click', () => selectPresentation(presentation.filename));
         presentationList.appendChild(item);
     });
 }
 
+// Update the selectPresentation function to handle edge cases
 async function selectPresentation(filename) {
     try {
         const response = await fetch(`${API_BASE_URL}/presentation-info/${filename}`);
@@ -1151,14 +1190,21 @@ async function selectPresentation(filename) {
             slideCount.textContent = `Total Slides: ${data.total_slides}`;
             updateSlideDisplay();
             
-            // Show presentation view
+            // Show presentation view and present button
             presentationView.style.display = 'block';
+            document.getElementById('presentModeBtn').style.display = 'flex';
             
-            // Enable quiz generation
+            // Enable quiz and explanation generation
             generateQuizBtn.disabled = false;
+            generateExplanationBtn.disabled = false;
             
-            // Update presentation list
+            // Update presentation list to reflect current selection
             renderPresentationList();
+            
+            // Show success message when switching presentations
+            showSuccess(`Now viewing: ${data.original_name}`);
+            setTimeout(hideSuccess, 3000);
+            
         } else {
             showError('Failed to load presentation data');
         }
@@ -1218,6 +1264,20 @@ function updateSlideDisplay() {
     prevSlideBtn.disabled = currentSlideIndex === 0;
     nextSlideBtn.disabled = currentSlideIndex === currentPresentation.total_slides - 1;
 }
+
+// Initialize the auto-refresh when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadAvailablePresentations();
+    initTabs();
+    startPresentationListRefresh();
+});
+
+// Also add an event listener for page visibility to refresh when user returns to the page
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        loadAvailablePresentations();
+    }
+});
 
 function handleImageError(imgElement) {
     console.log('Image load error'); // Debug log
