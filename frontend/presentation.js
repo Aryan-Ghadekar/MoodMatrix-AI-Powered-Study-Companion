@@ -22,6 +22,13 @@ let isPlaying = false;
 let currentExplanationPart = 0;
 let totalExplanationParts = 0;
 
+
+// Add to global state
+let questionTimer = null;
+let timePerQuestion = 60; // Default time
+let timeRemaining = 60;
+let autoProgressEnabled = false;
+
 // DOM Elements
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
@@ -180,20 +187,19 @@ function displayExplanation(explanationData) {
     explanationResults.style.display = 'block';
     currentExplanation = explanationData;
 
-    let html = '';
-    
-    if (explanationData.type === 'slide_by_slide') {
-        html = displaySlideBySlideExplanation(explanationData);
-    } else {
-        html = displayCombinedExplanation(explanationData);
-    }
-    
-    // Add fullscreen button
-    html += `
-        <div class="fullscreen-explanation-btn">
-            <button class="btn btn-fullscreen" id="openFullscreenExplanation">
-                <i data-feather="maximize-2"></i> View Explanation in Fullscreen
-            </button>
+    // Only show the fullscreen button, no explanation content
+    let html = `
+        <div class="explanation-ready">
+            
+            <div class="explanation-ready-text" >
+                <h3>Explanation Generated Successfully!</h3>
+                <p>Your AI explanation is ready to view in fullscreen mode.</p>
+            </div>
+            <div class="fullscreen-explanation-btn" >
+                <button class="btn btn-fullscreen" id="openFullscreenExplanation">
+                    <i data-feather="maximize-2"></i> View Explanation in Fullscreen
+                </button>
+            </div>
         </div>
     `;
     
@@ -1272,6 +1278,12 @@ document.addEventListener('DOMContentLoaded', function() {
     startPresentationListRefresh();
 });
 
+function startPresentationListRefresh() {
+    // Optional: Add automatic refresh logic here if needed
+    // For now, we'll just load presentations periodically
+    setInterval(loadAvailablePresentations, 30000); // Refresh every 30 seconds
+}
+
 // Also add an event listener for page visibility to refresh when user returns to the page
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
@@ -1368,6 +1380,7 @@ async function generateQuiz() {
     
     const numQuestions = document.getElementById('numQuestions').value;
     const slideRangeValue = document.getElementById('slideRange').value;
+    timePerQuestion = parseInt(document.getElementById('timePerQuestion').value) || 0;
     
     // Determine which slides to use for quiz generation
     let slideNumbers = [];
@@ -1520,6 +1533,7 @@ function openFullscreenQuiz() {
     currentQuestionIndex = 0;
     userAnswers = {};
     timeElapsed = 0;
+    timePerQuestion = parseInt(document.getElementById('timePerQuestion').value) || 0;
     
     // Update modal display
     totalQuestions.textContent = currentQuiz.questions.length;
@@ -1529,8 +1543,13 @@ function openFullscreenQuiz() {
     quizModal.style.display = 'block';
     document.body.style.overflow = 'hidden';
     
-    // Start timer
+    // Start overall quiz timer
     startQuizTimer();
+    
+    // Start question timer if enabled
+    if (timePerQuestion > 0) {
+        startQuestionTimer();
+    }
     
     // Refresh icons
     feather.replace();
@@ -1540,8 +1559,14 @@ function closeQuizModal() {
     quizModal.style.display = 'none';
     document.body.style.overflow = 'auto';
     
-    // Stop timer
+    // Stop all timers
     stopQuizTimer();
+    stopQuestionTimer();
+}
+// Add auto-progress toggle (optional feature)
+function toggleAutoProgress() {
+    autoProgressEnabled = !autoProgressEnabled;
+    return autoProgressEnabled;
 }
 
 function startQuizTimer() {
@@ -1553,10 +1578,85 @@ function startQuizTimer() {
     }, 1000);
 }
 
+// Add question timer functions
+function startQuestionTimer() {
+    stopQuestionTimer(); // Clear any existing timer
+    
+    timeRemaining = timePerQuestion;
+    updateQuestionTimerDisplay();
+    
+    questionTimer = setInterval(() => {
+        timeRemaining--;
+        updateQuestionTimerDisplay();
+        
+        if (timeRemaining <= 0) {
+            handleTimeUp();
+        }
+    }, 1000);
+}
+
+
+
+
+function handleTimeUp() {
+    stopQuestionTimer();
+    
+    const currentQuestion = currentQuiz.questions[currentQuestionIndex];
+    
+    // If no answer selected, mark as unanswered and auto-progress
+    if (!userAnswers[currentQuestionIndex]) {
+        userAnswers[currentQuestionIndex] = 'unanswered';
+        
+        // Show time up message
+        const timeUpMessage = document.createElement('div');
+        timeUpMessage.className = 'time-up-message';
+        timeUpMessage.innerHTML = `
+            <strong>Time's up!</strong> 
+            ${autoProgressEnabled ? 'Moving to next question...' : 'Please select an answer to continue.'}
+        `;
+        
+        const questionContainer = quizModalBody.querySelector('.single-question-view');
+        if (questionContainer) {
+            questionContainer.appendChild(timeUpMessage);
+        }
+        
+        // Auto-progress to next question if enabled
+        if (autoProgressEnabled) {
+            setTimeout(() => {
+                if (currentQuestionIndex < currentQuiz.questions.length - 1) {
+                    showNextQuestion();
+                } else {
+                    submitQuiz();
+                }
+            }, 2000);
+        }
+    }
+    
+    // Update display to show feedback
+    updateQuestionDisplay();
+}
+
 function stopQuizTimer() {
     if (quizTimer) {
         clearInterval(quizTimer);
         quizTimer = null;
+    }
+}
+
+function updateQuestionTimerDisplay() {
+    const timerDisplay = document.getElementById('questionTimerDisplay');
+    if (!timerDisplay) return;
+    
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Update styling based on time remaining
+    timerDisplay.className = 'timer-display';
+    if (timeRemaining <= 10) {
+        timerDisplay.classList.add('danger');
+    } else if (timeRemaining <= 30) {
+        timerDisplay.classList.add('warning');
     }
 }
 
@@ -1581,7 +1681,25 @@ function updateQuestionDisplay() {
     const question = currentQuiz.questions[currentQuestionIndex];
     currentQuestionNumber.textContent = currentQuestionIndex + 1;
     
-    let questionHTML = `
+    // Stop previous question timer
+    stopQuestionTimer();
+    
+    let questionHTML = '';
+    
+    // Add timer display if time per question is set
+    if (timePerQuestion > 0) {
+        questionHTML += `
+            <div class="question-timer">
+                <div class="timer-label">Time remaining:</div>
+                <div class="timer-display" id="questionTimerDisplay">
+                    ${Math.floor(timePerQuestion / 60).toString().padStart(2, '0')}:${(timePerQuestion % 60).toString().padStart(2, '0')}
+                </div>
+            </div>
+            ${autoProgressEnabled ? '<div class="auto-progress-notice">⚠️ Will auto-progress to next question when time is up</div>' : ''}
+        `;
+    }
+    
+    questionHTML += `
         <div class="single-question-view">
             <div class="question-header">
                 <div class="question-text-large">${question.id}. ${question.question}</div>
@@ -1610,7 +1728,7 @@ function updateQuestionDisplay() {
     
     // Feedback
     const userAnswer = userAnswers[currentQuestionIndex];
-    if (userAnswer) {
+    if (userAnswer && userAnswer !== 'unanswered') {
         const isCorrect = userAnswer === question.correct_answer;
         questionHTML += `
             <div class="feedback-large ${isCorrect ? 'correct' : 'incorrect'}">
@@ -1619,6 +1737,15 @@ function updateQuestionDisplay() {
         `;
         
         // Explanation
+        if (question.explanation) {
+            questionHTML += `<div class="explanation-large">${question.explanation}</div>`;
+        }
+    } else if (userAnswer === 'unanswered') {
+        questionHTML += `
+            <div class="feedback-large incorrect">
+                ⏰ Time's up! The correct answer was ${question.correct_answer}.
+            </div>
+        `;
         if (question.explanation) {
             questionHTML += `<div class="explanation-large">${question.explanation}</div>`;
         }
@@ -1642,14 +1769,42 @@ function updateQuestionDisplay() {
     // Update navigation buttons
     updateNavigationButtons();
     
+    // Start timer for this question if time per question is set
+    if (timePerQuestion > 0 && (!userAnswer || userAnswer === 'unanswered')) {
+        startQuestionTimer();
+    }
+    
     // Refresh icons
     feather.replace();
 }
+
+function stopQuestionTimer() {
+    if (questionTimer) {
+        clearInterval(questionTimer);
+        questionTimer = null;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAvailablePresentations();
+    initTabs();
+    
+    // Add auto-progress checkbox event listener
+    const autoProgressCheckbox = document.getElementById('autoProgress');
+    if (autoProgressCheckbox) {
+        autoProgressCheckbox.addEventListener('change', function() {
+            autoProgressEnabled = this.checked;
+        });
+    }
+});
 
 function handleFullscreenOptionClick(event) {
     const option = event.currentTarget;
     const questionIndex = parseInt(option.getAttribute('data-question'));
     const optionKey = option.getAttribute('data-option');
+    
+    // Stop the timer when an answer is selected
+    stopQuestionTimer();
     
     // Clear previous selection for this question
     const options = quizModalBody.querySelectorAll('.option-large');
@@ -1694,19 +1849,28 @@ function showNextQuestion() {
 }
 
 function submitQuiz() {
+    // Stop all timers
+    stopQuizTimer();
+    stopQuestionTimer();
+    
     // Calculate score
     let score = 0;
+    let totalAnswered = 0;
+    
     currentQuiz.questions.forEach((question, index) => {
-        if (userAnswers[index] === question.correct_answer) {
-            score++;
+        const userAnswer = userAnswers[index];
+        if (userAnswer && userAnswer !== 'unanswered') {
+            totalAnswered++;
+            if (userAnswer === question.correct_answer) {
+                score++;
+            }
         }
     });
     
-    // Stop timer
-    stopQuizTimer();
-    
     // Show results
     const timeSpent = `${Math.floor(timeElapsed / 60)}:${(timeElapsed % 60).toString().padStart(2, '0')}`;
+    const completionRate = Math.round((totalAnswered / currentQuiz.questions.length) * 100);
+    
     quizModalBody.innerHTML = `
         <div class="single-question-view" style="text-align: center;">
             <h2>Quiz Completed!</h2>
@@ -1714,8 +1878,14 @@ function submitQuiz() {
                 Your Score: <strong>${score}/${currentQuiz.questions.length}</strong>
             </div>
             <div style="font-size: 1.1rem; margin: 10px 0;">
+                Questions Answered: ${totalAnswered}/${currentQuiz.questions.length} (${completionRate}%)
+            </div>
+            <div style="font-size: 1.1rem; margin: 10px 0;">
                 Time Spent: ${timeSpent}
             </div>
+            ${timePerQuestion > 0 ? `<div style="font-size: 1rem; margin: 10px 0; color: var(--text-secondary);">
+                Time per question: ${timePerQuestion} seconds
+            </div>` : ''}
             <div style="margin: 20px 0;">
                 <button class="btn btn-secondary" id="reviewQuizBtn">Review Answers</button>
                 <button class="btn" id="closeQuizBtn">Close Quiz</button>

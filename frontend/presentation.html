@@ -78,6 +78,7 @@
                 </div>
 
                 <!-- Quiz Tab Content -->
+                <!-- Quiz Tab Content -->
                 <div class="tab-content active" id="quiz-tab">
                     <div class="quiz-controls">
                         <div class="form-group">
@@ -94,7 +95,23 @@
                             </select>
                         </div>
 
-                        <button class="btn btn-secondary" id="generateQuizBtn" >
+                        <!-- NEW: Timer Configuration -->
+                        <div class="form-group">
+                            <label for="timePerQuestion">Time per question (seconds)</label>
+                            <input type="number" id="timePerQuestion" min="0" max="300" value="60">
+                            <small style="font-size: 0.8rem; color: var(--text-secondary);">Set 0 for no time limit</small>
+                        </div>
+
+                        <!-- OPTIONAL: Auto-progress toggle -->
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoProgress">
+                                <span class="checkmark"></span>
+                                Auto-progress to next question when time is up
+                            </label>
+                        </div>
+
+                        <button class="btn btn-secondary" id="generateQuizBtn">
                             <i data-feather="help-circle"></i> Generate Quiz
                         </button>
                     </div>
