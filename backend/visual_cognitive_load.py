@@ -1,3 +1,5 @@
+# File to be deleted
+
 from ultralytics import YOLO
 import cv2
 from retinaface import RetinaFace
@@ -15,7 +17,6 @@ def predict_emotion(face_crop):
 def temporal_smoothing(emotion_sequence):
    # Yet to be implemented
     pass
-
 
 
 # Load YOLO model
@@ -81,3 +82,5 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+

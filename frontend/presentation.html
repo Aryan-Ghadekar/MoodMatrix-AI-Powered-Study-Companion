@@ -52,8 +52,7 @@
                             <span id="currentSlide">Slide 1 of 10</span>
                             <button class="btn" id="nextSlide">Next</button>
                             
-
-                            <button class="btn btn-accent" id="presentModeBtn" >
+                            <button class="btn btn-accent" id="presentModeBtn">
                                 <i data-feather="play">Present</i> 
                             </button>
                         </div>
@@ -72,34 +71,86 @@
                 <div class="success-message" id="successMessage"></div>
             </div>
 
-            <div class="quiz-section">
-                <h2 class="section-title">Quiz Generator</h2>
-                
-                <div class="quiz-controls">
-                    <div class="form-group">
-                        <label for="numQuestions">Number of Questions</label>
-                        <input type="number" id="numQuestions" min="1" max="20" value="5">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="slideRange">Generate from slides:</label>
-                        <select id="slideRange">
-                            <option value="current">Current slide only</option>
-                            <option value="previous">Previous slides only</option>
-                            <option value="all">All slides</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-secondary" id="generateQuizBtn" disabled>Generate Quiz</button>
+            <div class="ai-tools-section">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="quiz">Quiz Generator</button>
+                    <button class="tab-btn" data-tab="explanation">AI Explanation</button>
                 </div>
 
-                <div class="loading" id="quizLoading">
-                    <div class="spinner"></div>
-                    <p>Generating quiz questions...</p>
+                <!-- Quiz Tab Content -->
+                <div class="tab-content active" id="quiz-tab">
+                    <div class="quiz-controls">
+                        <div class="form-group">
+                            <label for="numQuestions">Number of Questions</label>
+                            <input type="number" id="numQuestions" min="1" max="20" value="5">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="slideRange">Generate from slides:</label>
+                            <select id="slideRange">
+                                <option value="current">Current slide only</option>
+                                <option value="previous">Previous slides only</option>
+                                <option value="all">All slides</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-secondary" id="generateQuizBtn" >
+                            <i data-feather="help-circle"></i> Generate Quiz
+                        </button>
+                    </div>
+
+                    <div class="loading" id="quizLoading">
+                        <div class="spinner"></div>
+                        <p>Generating quiz questions...</p>
+                    </div>
+
+                    <div class="quiz-results" id="quizResults">
+                        <!-- Quiz questions will be displayed here -->
+                    </div>
                 </div>
 
-                <div class="quiz-results" id="quizResults">
-                    <!-- Quiz questions will be displayed here -->
+                <!-- Explanation Tab Content -->
+                <div class="tab-content" id="explanation-tab">
+                    <div class="explanation-controls">
+                        <div class="form-group">
+                            <label for="explanationType">Explanation Type</label>
+                            <select id="explanationType">
+                                <option value="detailed">Detailed Explanation</option>
+                                <option value="simple">Simple Explanation</option>
+                                <option value="key_points">Key Points</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="explanationRange">Explain content from:</label>
+                            <select id="explanationRange">
+                                <option value="current">Current slide only</option>
+                                <option value="previous">Previous slides only</option>
+                                <option value="all">All slides</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="slideBySlide">
+                                <span class="checkmark"></span>
+                                Generate slide-by-slide explanation
+                            </label>
+                        </div>
+
+                        <button class="btn btn-secondary" id="generateExplanationBtn" >
+                            <i data-feather="book-open"></i> Generate Explanation
+                        </button>
+                    </div>
+
+                    <div class="loading" id="explanationLoading">
+                        <div class="spinner"></div>
+                        <p>Generating explanation...</p>
+                    </div>
+
+                    <div class="explanation-results" id="explanationResults">
+                        <!-- Explanation content will be displayed here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,6 +190,44 @@
             <button class="btn btn-accent" id="submitQuizBtn" style="display: none;">
                 <i data-feather="check-circle"></i> Submit Quiz
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen Explanation Modal -->
+<div id="explanationModal" class="explanation-modal">
+    <div class="explanation-modal-content">
+        <div class="explanation-modal-header">
+            <div class="explanation-title-large">
+                <i data-feather="book-open"></i>
+                <span id="explanationModalTitle">AI Explanation</span>
+            </div>
+            <div class="explanation-controls-large">
+                <button class="btn btn-control" id="listenExplanationBtn">
+                    <i data-feather="volume-2"></i> Listen
+                </button>
+                <button class="btn btn-control" id="pauseExplanationBtn" style="display: none;">
+                    <i data-feather="pause"></i> Pause
+                </button>
+                <button class="btn btn-secondary" id="exitFullscreenExplanation">
+                    <i data-feather="minimize"></i> Exit
+                </button>
+            </div>
+        </div>
+        
+        <div class="explanation-modal-body" id="explanationModalBody">
+            <!-- Explanation content will be loaded here -->
+        </div>
+        
+        <div class="explanation-modal-footer">
+            <div class="explanation-progress">
+                <div class="progress-info">
+                    <span id="currentExplanationPart">1</span> of <span id="totalExplanationParts">1</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="explanationProgressFill"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

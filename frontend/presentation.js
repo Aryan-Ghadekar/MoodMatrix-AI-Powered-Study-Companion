@@ -15,6 +15,13 @@ let timeElapsed = 0;
 let currentQuestionIndex = 0;
 let isPresenting = false;
 
+// TTS and Explanation state
+let currentExplanation = null;
+let currentAudio = null;
+let isPlaying = false;
+let currentExplanationPart = 0;
+let totalExplanationParts = 0;
+
 // DOM Elements
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
@@ -48,7 +55,32 @@ const prevQuestionBtn = document.getElementById('prevQuestionBtn');
 const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 const submitQuizBtn = document.getElementById('submitQuizBtn');
 
+
+const generateExplanationBtn = document.getElementById('generateExplanationBtn');
+const explanationLoading = document.getElementById('explanationLoading');
+const explanationResults = document.getElementById('explanationResults');
+const explanationType = document.getElementById('explanationType');
+const explanationRange = document.getElementById('explanationRange');
+const slideBySlide = document.getElementById('slideBySlide');
+
+// Explanation Modal Elements
+const explanationModal = document.getElementById('explanationModal');
+const explanationModalBody = document.getElementById('explanationModalBody');
+const explanationModalTitle = document.getElementById('explanationModalTitle');
+const exitFullscreenExplanationBtn = document.getElementById('exitFullscreenExplanation');
+const listenExplanationBtn = document.getElementById('listenExplanationBtn');
+const pauseExplanationBtn = document.getElementById('pauseExplanationBtn');
+const currentExplanationPartEl = document.getElementById('currentExplanationPart');
+const totalExplanationPartsEl = document.getElementById('totalExplanationParts');
+const explanationProgressFill = document.getElementById('explanationProgressFill');
+
+// Event Listeners for explanation modal
+exitFullscreenExplanationBtn.addEventListener('click', closeExplanationModal);
+listenExplanationBtn.addEventListener('click', listenToExplanation);
+pauseExplanationBtn.addEventListener('click', pauseExplanation);
+
 // Event Listeners
+generateExplanationBtn.addEventListener('click', generateExplanation);
 uploadBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFileUpload);
 uploadArea.addEventListener('dragover', (e) => {
@@ -89,6 +121,728 @@ document.getElementById('nextSlideModal').addEventListener('click', showNextSlid
 // Keyboard shortcuts for presentation mode
 document.addEventListener('keydown', handlePresentationKeyboard);
 
+
+// Explanation Functions
+async function generateExplanation() {
+    if (!currentPresentation) return;
+    
+    const explanationTypeValue = explanationType.value;
+    const explanationRangeValue = explanationRange.value;
+    const slideBySlideValue = slideBySlide.checked;
+    
+    // Determine which slides to use for explanation
+    let slideNumbers = [];
+    
+    if (explanationRangeValue === 'current') {
+        slideNumbers = [currentSlideIndex + 1];
+    } else if (explanationRangeValue === 'previous') {
+        for (let i = 1; i <= currentSlideIndex + 1; i++) {
+            slideNumbers.push(i);
+        }
+    } else {
+        for (let i = 1; i <= currentPresentation.total_slides; i++) {
+            slideNumbers.push(i);
+        }
+    }
+    
+    showExplanationLoading();
+    explanationResults.style.display = 'none';
+    hideError();
+    
+    try {
+        let url = `${API_BASE_URL}/generate-explanation/${currentPresentation.filename}?explanation_type=${explanationTypeValue}&slide_by_slide=${slideBySlideValue}`;
+        
+        // Add slide numbers
+        slideNumbers.forEach(num => {
+            url += `&slide_numbers=${num}`;
+        });
+        
+        const response = await fetch(url, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            displayExplanation(data);
+        } else {
+            showError(data.detail || 'Failed to generate explanation');
+        }
+    } catch (error) {
+        showError('Network error: ' + error.message);
+    } finally {
+        hideExplanationLoading();
+    }
+}
+
+function displayExplanation(explanationData) {
+    explanationResults.innerHTML = '';
+    explanationResults.style.display = 'block';
+    currentExplanation = explanationData;
+
+    let html = '';
+    
+    if (explanationData.type === 'slide_by_slide') {
+        html = displaySlideBySlideExplanation(explanationData);
+    } else {
+        html = displayCombinedExplanation(explanationData);
+    }
+    
+    // Add fullscreen button
+    html += `
+        <div class="fullscreen-explanation-btn">
+            <button class="btn btn-fullscreen" id="openFullscreenExplanation">
+                <i data-feather="maximize-2"></i> View Explanation in Fullscreen
+            </button>
+        </div>
+    `;
+    
+    explanationResults.innerHTML = html;
+    
+    // Add event listener to fullscreen button
+    document.getElementById('openFullscreenExplanation').addEventListener('click', openFullscreenExplanation);
+    
+    // Refresh icons
+    feather.replace();
+}
+
+function closeExplanationModal() {
+    explanationModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // Stop any playing audio
+    stopAudio();
+}
+
+function openFullscreenExplanation() {
+    if (!currentExplanation) return;
+    
+    currentExplanationPart = 0;
+    
+    // Update modal display
+    explanationModalTitle.textContent = currentExplanation.explanation_title || 'AI Explanation';
+    updateExplanationDisplay();
+    
+    // Show modal
+    explanationModal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Refresh icons
+    feather.replace();
+}
+
+function updateExplanationDisplay() {
+    if (!currentExplanation) return;
+    
+    let html = '';
+    
+    if (currentExplanation.type === 'slide_by_slide') {
+        html = displayFullscreenSlideBySlideExplanation(currentExplanation);
+        totalExplanationParts = currentExplanation.slide_explanations.length;
+    } else {
+        html = displayFullscreenCombinedExplanation(currentExplanation);
+        totalExplanationParts = 1;
+    }
+    
+    explanationModalBody.innerHTML = html;
+    
+    // Update progress
+    currentExplanationPartEl.textContent = currentExplanationPart + 1;
+    totalExplanationPartsEl.textContent = totalExplanationParts;
+    
+    const progress = ((currentExplanationPart + 1) / totalExplanationParts) * 100;
+    explanationProgressFill.style.width = `${progress}%`;
+    
+    // Refresh icons
+    feather.replace();
+}
+
+function displayFullscreenSlideBySlideExplanation(explanationData) {
+    let html = '';
+    
+    if (explanationData.slide_explanations && explanationData.slide_explanations.length > 0) {
+        const currentSlide = explanationData.slide_explanations[currentExplanationPart];
+        
+        html = `
+            <div class="slide-explanation-fullscreen">
+                <div class="slide-explanation-header-fullscreen">
+                    <div class="slide-number-badge-fullscreen">Slide ${currentSlide.slide_number}</div>
+                    <div class="slide-explanation-title-fullscreen">${currentSlide.slide_title}</div>
+                </div>
+                
+                ${currentSlide.main_topic ? `<div class="slide-main-topic-fullscreen">Main Topic: ${currentSlide.main_topic}</div>` : ''}
+                
+                <div class="slide-explanation-content-fullscreen">${currentSlide.explanation}</div>
+        `;
+        
+        if (currentSlide.key_points && currentSlide.key_points.length > 0) {
+            html += `
+                <div class="slide-key-points-fullscreen">
+                    <h5>Key Points:</h5>
+                    <ul>
+            `;
+            
+            currentSlide.key_points.forEach(point => {
+                html += `<li>${point}</li>`;
+            });
+            
+            html += `
+                    </ul>
+                </div>
+            `;
+        }
+        
+        // Add TTS controls for this slide
+        const slideText = getSlideExplanationText(currentSlide);
+        html += `
+            <div class="tts-controls">
+                <button class="btn btn-control" onclick="speakText('${btoa(encodeURIComponent(slideText))}')">
+                    <i data-feather="volume-2"></i> Listen to This Slide
+                </button>
+            </div>
+        `;
+        
+        html += `</div>`;
+        
+        // Add navigation buttons for slide-by-slide
+        html += `
+            <div class="explanation-navigation">
+                <button class="btn" onclick="previousExplanationPart()" ${currentExplanationPart === 0 ? 'disabled' : ''}>
+                    <i data-feather="arrow-left"></i> Previous Slide
+                </button>
+                <button class="btn btn-secondary" onclick="nextExplanationPart()" ${currentExplanationPart === explanationData.slide_explanations.length - 1 ? 'disabled' : ''}>
+                    Next Slide <i data-feather="arrow-right"></i>
+                </button>
+            </div>
+        `;
+    }
+    
+    return html;
+}
+
+function previousExplanationPart() {
+    if (currentExplanationPart > 0) {
+        currentExplanationPart--;
+        updateExplanationDisplay();
+    }
+}
+
+function nextExplanationPart() {
+    if (currentExplanation && currentExplanationPart < totalExplanationParts - 1) {
+        currentExplanationPart++;
+        updateExplanationDisplay();
+    }
+}
+
+function getSlideExplanationText(slideData) {
+    let text = `Slide ${slideData.slide_number}: ${slideData.slide_title}. `;
+    
+    if (slideData.main_topic) {
+        text += `Main Topic: ${slideData.main_topic}. `;
+    }
+    
+    text += `Explanation: ${slideData.explanation}. `;
+    
+    if (slideData.key_points && slideData.key_points.length > 0) {
+        text += 'Key Points: ';
+        slideData.key_points.forEach(point => {
+            text += `${point}. `;
+        });
+    }
+    
+    return text;
+}
+
+function getExplanationFullText(explanationData) {
+    let text = '';
+    
+    if (explanationData.summary) {
+        text += `Summary: ${explanationData.summary}. `;
+    }
+    
+    if (explanationData.key_concepts && explanationData.key_concepts.length > 0) {
+        text += 'Key Concepts: ';
+        explanationData.key_concepts.forEach(concept => {
+            text += `${concept.concept}: ${concept.explanation}. `;
+            if (concept.importance) {
+                text += `Why it matters: ${concept.importance}. `;
+            }
+        });
+    }
+    
+    if (explanationData.detailed_explanation) {
+        text += `Detailed Explanation: ${explanationData.detailed_explanation}. `;
+    }
+    
+    if (explanationData.takeaways && explanationData.takeaways.length > 0) {
+        text += 'Key Takeaways: ';
+        explanationData.takeaways.forEach(takeaway => {
+            text += `${takeaway}. `;
+        });
+    }
+    
+    return text;
+}
+
+function displayFullscreenCombinedExplanation(explanationData) {
+    let html = `
+        <div class="explanation-content-large">
+            <div class="explanation-title-fullscreen">${explanationData.explanation_title || 'Detailed Explanation'}</div>
+    `;
+    
+    if (explanationData.summary) {
+        html += `
+            <div class="explanation-summary-fullscreen">
+                <strong>Summary:</strong> ${explanationData.summary}
+            </div>
+        `;
+    }
+    
+    if (explanationData.key_concepts && explanationData.key_concepts.length > 0) {
+        html += `
+            <div class="key-concepts-fullscreen">
+                <h4>Key Concepts</h4>
+        `;
+        
+        explanationData.key_concepts.forEach(concept => {
+            html += `
+                <div class="concept-item-fullscreen">
+                    <div class="concept-name-fullscreen">${concept.concept}</div>
+                    <div class="concept-explanation-fullscreen">${concept.explanation}</div>
+                    ${concept.importance ? `<div class="concept-importance-fullscreen">Why it matters: ${concept.importance}</div>` : ''}
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+    }
+    
+    if (explanationData.detailed_explanation) {
+        html += `
+            <div class="detailed-explanation-fullscreen">
+                <h4>Comprehensive Explanation</h4>
+                <div>${explanationData.detailed_explanation}</div>
+            </div>
+        `;
+    }
+    
+    if (explanationData.takeaways && explanationData.takeaways.length > 0) {
+        html += `
+            <div class="takeaways-list-fullscreen">
+                <h4>Key Takeaways</h4>
+                <ul>
+        `;
+        
+        explanationData.takeaways.forEach(takeaway => {
+            html += `<li>${takeaway}</li>`;
+        });
+        
+        html += `
+                </ul>
+            </div>
+        `;
+    }
+    
+    // Add TTS controls
+    const fullText = getExplanationFullText(explanationData);
+    html += `
+        <div class="tts-controls">
+            <button class="btn btn-control" onclick="speakText('${btoa(encodeURIComponent(fullText))}')">
+                <i data-feather="volume-2"></i> Listen to Full Explanation
+            </button>
+        </div>
+    `;
+    
+    html += `</div>`;
+    return html;
+}
+
+async function speakText(encodedText) {
+    try {
+        const text = decodeURIComponent(atob(encodedText));
+        
+        // Show loading state
+        listenExplanationBtn.disabled = true;
+        listenExplanationBtn.innerHTML = '<div class="spinner-small"></div> Generating...';
+        
+        const response = await fetch(`${API_BASE_URL}/generate-tts?text=${encodeURIComponent(text)}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            if (data.use_browser_tts) {
+                // Use browser's built-in speech synthesis
+                useBrowserTTS(text);
+            } else if (data.audio_base64) {
+                // Use server-generated audio
+                playAudioFromBase64(data.audio_base64);
+            } else {
+                throw new Error('No audio data received');
+            }
+        } else {
+            // Fallback to browser TTS
+            useBrowserTTS(text);
+        }
+    } catch (error) {
+        console.error('TTS error, using browser fallback:', error);
+        const text = decodeURIComponent(atob(encodedText));
+        useBrowserTTS(text);
+    } finally {
+        // Reset button state
+        listenExplanationBtn.disabled = false;
+        listenExplanationBtn.innerHTML = '<i data-feather="volume-2"></i> Listen';
+        feather.replace();
+    }
+}
+
+function playAudioFromBase64(audioBase64) {
+    // Create audio element
+    const audio = new Audio(`data:audio/mp3;base64,${audioBase64}`);
+    
+    // Stop any currently playing audio
+    stopAudio();
+    
+    // Set current audio
+    currentAudio = audio;
+    isPlaying = true;
+    
+    // Update UI
+    listenExplanationBtn.style.display = 'none';
+    pauseExplanationBtn.style.display = 'flex';
+    listenExplanationBtn.classList.add('listening');
+    
+    // Play audio
+    audio.play();
+    
+    // Handle audio end
+    audio.onended = () => {
+        stopAudio();
+    };
+    
+    // Handle audio error
+    audio.onerror = () => {
+        stopAudio();
+        showError('Failed to play audio');
+    };
+}
+
+
+function useBrowserTTS(text) {
+    // Check if browser supports speech synthesis
+    if ('speechSynthesis' in window) {
+        // Stop any current speech
+        window.speechSynthesis.cancel();
+        
+        // Create speech utterance
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Configure voice
+        utterance.rate = 0.8; // Slower speed for better comprehension
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        
+        // Set a pleasant voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const englishVoice = voices.find(voice => 
+            voice.lang.includes('en') && voice.name.includes('Female')
+        ) || voices.find(voice => voice.lang.includes('en'));
+        
+        if (englishVoice) {
+            utterance.voice = englishVoice;
+        }
+        
+        // Update UI
+        listenExplanationBtn.style.display = 'none';
+        pauseExplanationBtn.style.display = 'flex';
+        listenExplanationBtn.classList.add('listening');
+        
+        // Set current audio
+        currentAudio = utterance;
+        isPlaying = true;
+        
+        // Play speech
+        window.speechSynthesis.speak(utterance);
+        
+        // Handle events
+        utterance.onend = () => {
+            stopAudio();
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('Speech synthesis error:', event);
+            stopAudio();
+            showError('Speech synthesis failed');
+        };
+        
+    } else {
+        showError('Text-to-Speech not supported in your browser');
+    }
+}
+
+
+
+function listenToExplanation() {
+    if (!currentExplanation) return;
+    
+    let text = '';
+    if (currentExplanation.type === 'slide_by_slide') {
+        const currentSlide = currentExplanation.slide_explanations[currentExplanationPart];
+        text = getSlideExplanationText(currentSlide);
+    } else {
+        text = getExplanationFullText(currentExplanation);
+    }
+    
+    speakText(btoa(encodeURIComponent(text)));
+}
+
+function pauseExplanation() {
+    if (isPlaying) {
+        // Pause server-generated audio
+        if (currentAudio && currentAudio.pause) {
+            currentAudio.pause();
+        }
+        
+        // Pause browser TTS
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.pause();
+        }
+        
+        isPlaying = false;
+        pauseExplanationBtn.innerHTML = '<i data-feather="play"></i> Resume';
+        feather.replace();
+    } else {
+        // Resume server-generated audio
+        if (currentAudio && currentAudio.play) {
+            currentAudio.play();
+        }
+        
+        // Resume browser TTS
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.resume();
+        }
+        
+        isPlaying = true;
+        pauseExplanationBtn.innerHTML = '<i data-feather="pause"></i> Pause';
+        feather.replace();
+    }
+}
+
+function stopAudio() {
+    // Stop server-generated audio
+    if (currentAudio && currentAudio.pause) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+    }
+    
+    // Stop browser TTS
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+    
+    // Reset state
+    currentAudio = null;
+    isPlaying = false;
+    pauseExplanationBtn.style.display = 'none';
+    listenExplanationBtn.style.display = 'flex';
+    listenExplanationBtn.classList.remove('listening');
+}
+
+function displayCombinedExplanation(explanationData) {
+    let html = `
+        <div class="explanation-content">
+            <div class="explanation-title">${explanationData.explanation_title || 'Explanation'}</div>
+    `;
+    
+    if (explanationData.summary) {
+        html += `
+            <div class="explanation-summary">
+                <strong>Summary:</strong> ${explanationData.summary}
+            </div>
+        `;
+    }
+    
+    if (explanationData.key_concepts && explanationData.key_concepts.length > 0) {
+        html += `
+            <div class="key-concepts">
+                <h4>Key Concepts</h4>
+        `;
+        
+        explanationData.key_concepts.forEach(concept => {
+            html += `
+                <div class="concept-item">
+                    <div class="concept-name">${concept.concept}</div>
+                    <div class="concept-explanation">${concept.explanation}</div>
+                    ${concept.importance ? `<div class="concept-importance">Why it matters: ${concept.importance}</div>` : ''}
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+    }
+    
+    if (explanationData.detailed_explanation) {
+        html += `
+            <div class="detailed-explanation">
+                <h4>Detailed Explanation</h4>
+                <div>${explanationData.detailed_explanation}</div>
+            </div>
+        `;
+    }
+    
+    if (explanationData.takeaways && explanationData.takeaways.length > 0) {
+        html += `
+            <div class="takeaways-list">
+                <h4>Key Takeaways</h4>
+                <ul>
+        `;
+        
+        explanationData.takeaways.forEach(takeaway => {
+            html += `<li>${takeaway}</li>`;
+        });
+        
+        html += `
+                </ul>
+            </div>
+        `;
+    }
+    
+    if (explanationData.difficulty_level) {
+        const difficultyClass = `difficulty-${explanationData.difficulty_level}`;
+        html += `
+            <div class="difficulty-badge ${difficultyClass}">
+                ${explanationData.difficulty_level.toUpperCase()}
+            </div>
+        `;
+    }
+    
+    html += `</div>`;
+    return html;
+}
+
+
+function displaySlideBySlideExplanation(explanationData) {
+    let html = `
+        <div class="explanation-content">
+            <div class="explanation-title">
+                Slide-by-Slide Explanation
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                    (${explanationData.total_slides} slides)
+                </span>
+            </div>
+    `;
+    
+    if (explanationData.slide_explanations && explanationData.slide_explanations.length > 0) {
+        explanationData.slide_explanations.forEach(slide => {
+            html += `
+                <div class="slide-explanation-item">
+                    <div class="slide-explanation-header">
+                        <div class="slide-number-badge">Slide ${slide.slide_number}</div>
+                        <div class="slide-explanation-title">${slide.slide_title}</div>
+                    </div>
+                    ${slide.main_topic ? `<div class="slide-main-topic">Main Topic: ${slide.main_topic}</div>` : ''}
+                    <div class="slide-explanation-content">${slide.explanation}</div>
+            `;
+            
+            if (slide.key_points && slide.key_points.length > 0) {
+                html += `
+                    <div class="slide-key-points">
+                        <h5>Key Points:</h5>
+                        <ul>
+                `;
+                
+                slide.key_points.forEach(point => {
+                    html += `<li>${point}</li>`;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+        });
+    }
+    
+    html += `</div>`;
+    return html;
+}
+
+function showExplanationLoading() {
+    explanationLoading.style.display = 'block';
+    generateExplanationBtn.disabled = true;
+}
+
+function hideExplanationLoading() {
+    explanationLoading.style.display = 'none';
+    generateExplanationBtn.disabled = false;
+}
+
+// Update the selectPresentation function to enable explanation button
+async function selectPresentation(filename) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/presentation-info/${filename}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentPresentation = data;
+            currentSlideIndex = 0;
+            
+            // Update UI
+            presentationTitle.textContent = data.original_name;
+            slideCount.textContent = `Total Slides: ${data.total_slides}`;
+            updateSlideDisplay();
+            
+            // Show presentation view and present button
+            presentationView.style.display = 'block';
+            document.getElementById('presentModeBtn').style.display = 'flex';
+            
+            // Enable quiz and explanation generation
+            generateQuizBtn.disabled = false;
+            generateExplanationBtn.disabled = false;
+            
+            // Update presentation list
+            renderPresentationList();
+        } else {
+            showError('Failed to load presentation data');
+        }
+    } catch (error) {
+        showError('Network error: ' + error.message);
+    }
+}
+
+
+// Tab functionality
+function initTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and contents
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding content
+            btn.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            // Refresh icons when switching tabs
+            setTimeout(() => {
+                feather.replace();
+            }, 100);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAvailablePresentations();
+    initTabs(); // Initialize tabs
+});
 
 function startPresentationMode() {
     if (!currentPresentation) return;
@@ -237,8 +991,9 @@ async function selectPresentation(filename) {
             presentationView.style.display = 'block';
             document.getElementById('presentModeBtn').style.display = 'flex';
             
-            // Enable quiz generation
+            // Enable both quiz and explanation generation
             generateQuizBtn.disabled = false;
+            generateExplanationBtn.disabled = false;
             
             // Update presentation list
             renderPresentationList();
@@ -558,15 +1313,12 @@ async function generateQuiz() {
     let slideNumbers = [];
     
     if (slideRangeValue === 'current') {
-        // Only use the current slide
-        slideNumbers = [currentSlideIndex + 1]; // +1 because slides are 1-indexed
+        slideNumbers = [currentSlideIndex + 1];
     } else if (slideRangeValue === 'previous') {
-        // Use all slides up to the current one
         for (let i = 1; i <= currentSlideIndex + 1; i++) {
             slideNumbers.push(i);
         }
     } else {
-        // Use all slides
         for (let i = 1; i <= currentPresentation.total_slides; i++) {
             slideNumbers.push(i);
         }
@@ -1050,13 +1802,28 @@ function hideUploadLoading() {
 function showQuizLoading() {
     quizLoading.style.display = 'block';
     generateQuizBtn.disabled = true;
-}
+    generateQuizBtn.innerHTML = '<div class="spinner-small"></div> Generating...';
+}   
 
 function hideQuizLoading() {
     quizLoading.style.display = 'none';
     generateQuizBtn.disabled = false;
+    generateQuizBtn.innerHTML = '<i data-feather="help-circle"></i> Generate Quiz';
+    feather.replace();
 }
 
+
+function showExplanationLoading() {
+    explanationLoading.style.display = 'block';
+    generateExplanationBtn.disabled = true;
+    generateExplanationBtn.innerHTML = '<div class="spinner-small"></div> Generating...';
+}
+function hideExplanationLoading() {
+    explanationLoading.style.display = 'none';
+    generateExplanationBtn.disabled = false;
+    generateExplanationBtn.innerHTML = '<i data-feather="book-open"></i> Generate Explanation';
+    feather.replace();
+}
 function showError(message) {
     errorMessage.textContent = message;
     errorMessage.style.display = 'block';
