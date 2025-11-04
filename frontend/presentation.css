@@ -1653,3 +1653,115 @@
         padding: 20px;
     }
 }
+
+.explanation-ready {
+    text-align: center;
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.explanation-ready-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.explanation-ready-icon svg {
+    width: 8px;
+    height: 8px;
+}
+
+.explanation-ready-text h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.explanation-ready-text p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.btn-fullscreen {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-secondary));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-fullscreen:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+/* Timer styles */
+.question-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.timer-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    background: var(--bg-primary);
+    border: 2px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+.timer-display.warning {
+    color: #f59e0b;
+    border-color: #f59e0b;
+    animation: pulse 1s infinite;
+}
+
+.timer-display.danger {
+    color: #ef4444;
+    border-color: #ef4444;
+    animation: pulse 0.5s infinite;
+}
+
+.timer-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.time-up-message {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    margin: 1rem 0;
+    border: 1px solid #fecaca;
+}
+
+.auto-progress-notice {
+    background: #fffbeb;
+    color: #d97706;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    border: 1px solid #fed7aa;
+}
