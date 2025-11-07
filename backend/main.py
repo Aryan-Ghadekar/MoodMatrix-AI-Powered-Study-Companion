@@ -330,6 +330,72 @@ async def generate_tts(text: str):
             "use_browser_tts": True
         }
 
+@app.post("/generate-examples/{filename}")
+async def generate_real_life_examples(
+    filename: str,
+    slide_numbers: Optional[List[int]] = Query(None)
+):
+    """
+    Generate real-life examples for presentation content
+    """
+    try:
+        if explanation_generator is None:
+            raise HTTPException(status_code=503, detail="Explanation service is not available")
+        
+        if filename not in presentations:
+            raise HTTPException(status_code=404, detail="Presentation not found")
+        
+        file_path = presentations[filename]["file_path"]
+        presentation_data = presentations[filename]["data"]
+        
+        # Validate slide numbers if provided
+        if slide_numbers:
+            max_slides = presentation_data["total_slides"]
+            invalid_slides = [s for s in slide_numbers if s < 1 or s > max_slides]
+            if invalid_slides:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid slide numbers: {invalid_slides}. Available: 1-{max_slides}"
+                )
+        else:
+            # Use all slides if none specified
+            slide_numbers = list(range(1, presentation_data["total_slides"] + 1))
+        
+        # Extract content and generate examples
+        content_parts = []
+        for slide_num in slide_numbers:
+            try:
+                slide_content = get_slide_content(file_path, slide_num - 1)
+                content_parts.append(f"Slide {slide_num}: {slide_content.get('content', '')}")
+            except Exception:
+                continue
+        
+        if not content_parts:
+            raise HTTPException(status_code=400, detail="No content found in specified slides")
+        
+        combined_content = "\n".join(content_parts)
+        
+        # Generate examples using the explanation generator
+        examples_data = explanation_generator.generate_explanation_from_content(
+            combined_content, "detailed"
+        )
+        
+        return {
+            "presentation_info": {
+                "filename": filename,
+                "original_name": presentations[filename]["original_filename"],
+                "slides_used": slide_numbers,
+                "total_slides": presentation_data["total_slides"]
+            },
+            "real_life_examples": examples_data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Real-life examples generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Real-life examples generation failed: {str(e)}")
+
 @app.post("/generate-explanation/{filename}")
 async def generate_explanation(
     filename: str,
