@@ -72,3 +72,76 @@ Download the required pre-trained models and place them in the `models/` directo
 ```bash
 python backend/cognitive_load.py
 ```
+# 🧩 PDF & PPT Conversion Setup Guide (Windows)
+
+This guide helps you set up the dependencies required for PDF and PPT to image conversion in your Python project — **Poppler** (for PDFs) and **LibreOffice** (for PPTs).
+
+---
+
+## 📦 1. Install Poppler for Windows
+
+Poppler is required for converting PDF files to images (used by libraries like `pdf2image`).
+
+### 🪜 Steps
+
+1. **Download Poppler**
+   - Go to the official repository:  
+     🔗 [https://github.com/oschwartz10612/poppler-windows/releases/](https://github.com/oschwartz10612/poppler-windows/releases/)
+   - Download the latest `poppler-xx.x.x-x/Release-xx/` **ZIP file** (choose `poppler-xx.x.x-x/Release-64bit.zip` if you’re on a 64-bit system).
+
+2. **Extract Files**
+   - Extract the ZIP file (for example to):  
+     ```
+     C:\poppler
+     ```
+
+3. **Add Poppler to System PATH**
+   - Press **Windows + S** → search **"Edit the system environment variables"**
+   - Click **Environment Variables**
+   - Under **System variables**, find and select **Path**, then click **Edit**
+   - Click **New** → Add the following path:
+     ```
+     C:\poppler\Library\bin
+     ```
+   - Click **OK** to save all dialogs.
+
+4. **Verify Installation**
+   - Open **PowerShell** or **CMD** and run:
+     ```bash
+     pdftoppm -h
+     ```
+   - ✅ If installed correctly, it will show Poppler usage instructions.
+
+---
+
+## 🖥️ 2. Install LibreOffice
+
+LibreOffice is required for converting PowerPoint (.ppt/.pptx) files to images or PDFs.
+
+### 🪜 Steps
+
+1. **Download LibreOffice**
+   - Go to:  
+     🔗 [https://www.libreoffice.org/download/download-libreoffice/](https://www.libreoffice.org/download/download-libreoffice/)
+
+2. **Run Installer**
+   - Choose the **Windows** version.
+   - Install using default settings (it will install to `C:\Program Files\LibreOffice` by default).
+
+3. **Add LibreOffice to PATH**
+   - Press **Windows + S** → search **"Edit the system environment variables"**
+   - Click **Environment Variables**
+   - Under **System variables**, find **Path** → **Edit**
+   - Add this path:
+     ```
+     C:\Program Files\LibreOffice\program
+     ```
+
+4. **Verify Installation**
+   - Open CMD or PowerShell and run:
+     ```bash
+     soffice --version
+     ```
+   - ✅ If installed correctly, you’ll see LibreOffice version info.
+
+

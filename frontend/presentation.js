@@ -349,6 +349,20 @@ function getSlideExplanationText(slideData) {
     
     text += `Explanation: ${slideData.explanation}. `;
     
+    if (slideData.real_life_examples && slideData.real_life_examples.length > 0) {
+        text += 'Real-life examples: ';
+        slideData.real_life_examples.forEach(example => {
+            text += `${example.example}: ${example.explanation}. `;
+        });
+    }
+    
+    if (slideData.practical_applications && slideData.practical_applications.length > 0) {
+        text += 'Practical applications: ';
+        slideData.practical_applications.forEach(application => {
+            text += `${application}. `;
+        });
+    }
+    
     if (slideData.key_points && slideData.key_points.length > 0) {
         text += 'Key Points: ';
         slideData.key_points.forEach(point => {
@@ -373,6 +387,26 @@ function getExplanationFullText(explanationData) {
             if (concept.importance) {
                 text += `Why it matters: ${concept.importance}. `;
             }
+            if (concept.real_life_examples && concept.real_life_examples.length > 0) {
+                text += 'Real-life examples: ';
+                concept.real_life_examples.forEach(example => {
+                    text += `${example.example}: ${example.explanation}. `;
+                });
+            }
+        });
+    }
+    
+    if (explanationData.real_world_applications && explanationData.real_world_applications.length > 0) {
+        text += 'Real-world applications: ';
+        explanationData.real_world_applications.forEach(application => {
+            text += `${application}. `;
+        });
+    }
+    
+    if (explanationData.practical_tips && explanationData.practical_tips.length > 0) {
+        text += 'Practical tips: ';
+        explanationData.practical_tips.forEach(tip => {
+            text += `${tip}. `;
         });
     }
     
@@ -416,11 +450,84 @@ function displayFullscreenCombinedExplanation(explanationData) {
                     <div class="concept-name-fullscreen">${concept.concept}</div>
                     <div class="concept-explanation-fullscreen">${concept.explanation}</div>
                     ${concept.importance ? `<div class="concept-importance-fullscreen">Why it matters: ${concept.importance}</div>` : ''}
+            `;
+            
+            // Add real-life examples if available
+            if (concept.real_life_examples && concept.real_life_examples.length > 0) {
+                html += `
+                    <div class="real-life-examples">
+                        <h5>Real-Life Examples:</h5>
+                        <div class="examples-list">
+                `;
+                
+                concept.real_life_examples.forEach(example => {
+                    html += `
+                        <div class="example-item">
+                            <div class="example-icon">💡</div>
+                            <div class="example-content">
+                                <strong>${example.example}</strong>
+                                <div class="example-explanation">${example.explanation}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+        });
+        
+        html += `</div>`;
+    }
+    
+    // Add real-world applications section
+    if (explanationData.real_world_applications && explanationData.real_world_applications.length > 0) {
+        html += `
+            <div class="applications-section">
+                <h4>Real-World Applications</h4>
+                <div class="applications-list">
+        `;
+        
+        explanationData.real_world_applications.forEach(application => {
+            html += `
+                <div class="application-item">
+                    <div class="application-icon">🚀</div>
+                    <div class="application-text">${application}</div>
                 </div>
             `;
         });
         
-        html += `</div>`;
+        html += `
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add practical tips section
+    if (explanationData.practical_tips && explanationData.practical_tips.length > 0) {
+        html += `
+            <div class="practical-tips-section">
+                <h4>Practical Tips</h4>
+                <div class="tips-list">
+        `;
+        
+        explanationData.practical_tips.forEach(tip => {
+            html += `
+                <div class="tip-item">
+                    <div class="tip-icon">💡</div>
+                    <div class="tip-text">${tip}</div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
     }
     
     if (explanationData.detailed_explanation) {
