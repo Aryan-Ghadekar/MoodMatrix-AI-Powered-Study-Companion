@@ -125,6 +125,7 @@ document.getElementById('exitPresentMode').addEventListener('click', exitPresent
 document.getElementById('prevSlideModal').addEventListener('click', showPreviousSlideModal);
 document.getElementById('nextSlideModal').addEventListener('click', showNextSlideModal);
 
+
 // Keyboard shortcuts for presentation mode
 document.addEventListener('keydown', handlePresentationKeyboard);
 
@@ -281,6 +282,50 @@ function displayFullscreenSlideBySlideExplanation(explanationData) {
                 <div class="slide-explanation-content-fullscreen">${currentSlide.explanation}</div>
         `;
         
+        // Add real-life examples for this slide
+        if (currentSlide.real_life_examples && currentSlide.real_life_examples.length > 0) {
+            html += `
+                <div class="slide-real-life-examples">
+                    <h5>Real-Life Examples:</h5>
+                    <div class="examples-list">
+            `;
+            
+            currentSlide.real_life_examples.forEach(example => {
+                html += `
+                    <div class="example-item">
+                        <div class="example-icon">💡</div>
+                        <div class="example-content">
+                            <strong>${example.example}</strong>
+                            <div class="example-explanation">${example.explanation}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Add practical applications
+        if (currentSlide.practical_applications && currentSlide.practical_applications.length > 0) {
+            html += `
+                <div class="slide-practical-applications">
+                    <h5>Practical Applications:</h5>
+                    <ul>
+            `;
+            
+            currentSlide.practical_applications.forEach(application => {
+                html += `<li>${application}</li>`;
+            });
+            
+            html += `
+                    </ul>
+                </div>
+            `;
+        }
+        
         if (currentSlide.key_points && currentSlide.key_points.length > 0) {
             html += `
                 <div class="slide-key-points-fullscreen">
@@ -373,6 +418,7 @@ function getSlideExplanationText(slideData) {
     return text;
 }
 
+
 function getExplanationFullText(explanationData) {
     let text = '';
     
@@ -422,6 +468,116 @@ function getExplanationFullText(explanationData) {
     }
     
     return text;
+}
+
+
+
+function displayRealLifeExamples(examplesData) {
+    explanationResults.innerHTML = '';
+    explanationResults.style.display = 'block';
+    
+    let html = `
+        <div class="explanation-content">
+            <div class="explanation-title">Real-Life Examples & Applications</div>
+    `;
+    
+    if (examplesData.real_life_examples) {
+        const examples = examplesData.real_life_examples;
+        
+        // Show key concepts with examples
+        if (examples.key_concepts && examples.key_concepts.length > 0) {
+            html += `
+                <div class="key-concepts">
+                    <h4>Key Concepts with Real-Life Examples</h4>
+            `;
+            
+            examples.key_concepts.forEach(concept => {
+                html += `
+                    <div class="concept-item">
+                        <div class="concept-name">${concept.concept}</div>
+                        <div class="concept-explanation">${concept.explanation}</div>
+                `;
+                
+                if (concept.real_life_examples && concept.real_life_examples.length > 0) {
+                    html += `
+                        <div class="real-life-examples">
+                            <h5>Real-Life Examples:</h5>
+                            <div class="examples-list">
+                    `;
+                    
+                    concept.real_life_examples.forEach(example => {
+                        html += `
+                            <div class="example-item">
+                                <div class="example-icon">💡</div>
+                                <div class="example-content">
+                                    <strong>${example.example}</strong>
+                                    <div class="example-explanation">${example.explanation}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `</div>`;
+            });
+            
+            html += `</div>`;
+        }
+        
+        // Show real-world applications
+        if (examples.real_world_applications && examples.real_world_applications.length > 0) {
+            html += `
+                <div class="applications-section">
+                    <h4>Real-World Applications</h4>
+                    <div class="applications-list">
+            `;
+            
+            examples.real_world_applications.forEach(application => {
+                html += `
+                    <div class="application-item">
+                        <div class="application-icon">🚀</div>
+                        <div class="application-text">${application}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Show practical tips
+        if (examples.practical_tips && examples.practical_tips.length > 0) {
+            html += `
+                <div class="practical-tips-section">
+                    <h4>Practical Tips</h4>
+                    <div class="tips-list">
+            `;
+            
+            examples.practical_tips.forEach(tip => {
+                html += `
+                    <div class="tip-item">
+                        <div class="tip-icon">💡</div>
+                        <div class="tip-text">${tip}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    html += `</div>`;
+    explanationResults.innerHTML = html;
 }
 
 function displayFullscreenCombinedExplanation(explanationData) {
