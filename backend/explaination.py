@@ -69,11 +69,11 @@ class ExplanationGenerator:
             raise HTTPException(status_code=500, detail=f"Explanation generation failed: {str(e)}")
     
     def _build_explanation_prompt(self, content: str, explanation_type: str) -> str:
-        """Build the prompt for explanation generation"""
+        """Build the prompt for explanation generation with real-life examples"""
         
         type_instructions = {
             "detailed": "Provide comprehensive, in-depth explanations covering all concepts with real-life examples",
-            "simple": "Provide simplified explanations suitable for beginners with practical examples",
+            "simple": "Provide simplified explanations suitable for beginners with practical examples", 
             "key_points": "Extract and explain the main key points and takeaways with real-world applications"
         }
         
@@ -117,12 +117,12 @@ class ExplanationGenerator:
             "detailed_explanation": "Comprehensive explanation covering all main points with examples",
             "real_world_applications": [
                 "Application 1 in industry/business",
-                "Application 2 in daily life",
+                "Application 2 in daily life", 
                 "Application 3 in technology/science"
             ],
             "practical_tips": [
                 "How to apply this knowledge practically",
-                "Tips for implementation",
+                "Tips for implementation", 
                 "Common use cases"
             ],
             "takeaways": [
@@ -177,16 +177,17 @@ class ExplanationGenerator:
                     
                     if content.strip():
                         # Generate explanation for this specific slide with real-life examples
+                        # In generate_slide_by_slide_explanation method, update the prompt:
                         prompt = f"""
                         Explain the content of this single presentation slide with REAL-LIFE EXAMPLES:
-                        
+
                         SLIDE {slide_num} CONTENT:
                         {content}
-                        
+
                         Provide a clear explanation of what this slide is about, 
                         the key messages it conveys, and any important details.
                         INCLUDE RELEVANT REAL-LIFE EXAMPLES that help understand the concepts.
-                        
+
                         Return JSON format:
                         {{
                             "slide_number": {slide_num},
