@@ -186,7 +186,7 @@ body {
 }
 
 .table-title i {
-  color: var(--accent);
+  color: var(--primary);
   font-size: 1.5rem;
 }
 
