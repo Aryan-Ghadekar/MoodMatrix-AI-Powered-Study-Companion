@@ -6,3 +6,4 @@ static/
 backend/yolov8n.pt
 backend/venv-mediapipe/
 backend/venv-tf/
+backend/emotion_scaler.pkl
