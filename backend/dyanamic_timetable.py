@@ -15,7 +15,6 @@ async def generate_timetable(request: Request) -> Dict[str, Any]:
     based on focus (cognitive load) and subject difficulty.
     Ensures all days and subjects are covered.
     """
-
     try:
         body = await request.json()
         cognitive_data = body.get("cognitive_data")
@@ -75,9 +74,9 @@ async def generate_timetable(request: Request) -> Dict[str, Any]:
     easy_subjects = [s for s, w in subjects.items() if w < 2]
 
     for i, (day, focus) in enumerate(sorted_days):
-        if focus > 0.7:
+        if focus < 0.7:
             weekly_timetable[day].extend(hard_subjects[:2])  # top 2 hardest
-        elif focus > 0.4:
+        elif focus < 0.4:
             weekly_timetable[day].extend(medium_subjects[:2])  # next 2 medium
         else:
             weekly_timetable[day].extend(easy_subjects[:2])  # next 2 easy
