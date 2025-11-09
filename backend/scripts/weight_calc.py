@@ -94,3 +94,17 @@ CL_pred = reg.predict(E_scaled)[0]
 CL_pred = np.clip(CL_pred, 0, 1)  # bound between 0–1
 
 print(f"\nPredicted cognitive load for example frame: {CL_pred:.3f}")
+
+# -----------------------------
+# STEP 9: VISUALIZE MODEL PERFORMANCE
+# -----------------------------
+y_pred = reg.predict(X_scaled)
+
+plt.figure(figsize=(6,6))
+plt.scatter(y, y_pred, color='blue', alpha=0.5)
+plt.plot([0,1], [0,1], 'r--')
+plt.title("Predicted vs Actual Cognitive Load")
+plt.xlabel("Actual Cognitive Load")
+plt.ylabel("Predicted Cognitive Load")
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
