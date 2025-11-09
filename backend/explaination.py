@@ -37,6 +37,7 @@ class ExplanationGenerator:
                         "role": "system",
                         "content": """You are an expert educator and explainer. 
                         Create clear, engaging explanations for presentation content.
+                        Always include relevant real-life examples to make concepts relatable.
                         Always return valid JSON format without any additional text.
                         Make explanations educational, accurate, and easy to understand."""
                     },
@@ -46,7 +47,7 @@ class ExplanationGenerator:
                     }
                 ],
                 temperature=0.7,
-                max_tokens=2000,
+                max_tokens=2500,  # Increased for real-life examples
                 response_format={"type": "json_object"}
             )
             
@@ -68,18 +69,18 @@ class ExplanationGenerator:
             raise HTTPException(status_code=500, detail=f"Explanation generation failed: {str(e)}")
     
     def _build_explanation_prompt(self, content: str, explanation_type: str) -> str:
-        """Build the prompt for explanation generation"""
+        """Build the prompt for explanation generation with real-life examples"""
         
         type_instructions = {
-            "detailed": "Provide comprehensive, in-depth explanations covering all concepts",
-            "simple": "Provide simplified explanations suitable for beginners",
-            "key_points": "Extract and explain the main key points and takeaways"
+            "detailed": "Provide comprehensive, in-depth explanations covering all concepts with real-life examples",
+            "simple": "Provide simplified explanations suitable for beginners with practical examples", 
+            "key_points": "Extract and explain the main key points and takeaways with real-world applications"
         }
         
-        instruction = type_instructions.get(explanation_type, "Provide detailed explanations")
+        instruction = type_instructions.get(explanation_type, "Provide detailed explanations with real-life examples")
         
         return f"""
-        Based on the following presentation content, create an educational explanation.
+        Based on the following presentation content, create an educational explanation with REAL-LIFE EXAMPLES.
         
         PRESENTATION CONTENT:
         {content}
@@ -91,6 +92,10 @@ class ExplanationGenerator:
         - Highlight important concepts and relationships
         - Provide context and practical significance where relevant
         - Structure the explanation logically
+        - INCLUDE RELEVANT REAL-LIFE EXAMPLES for each major concept
+        - Examples should be practical, relatable, and help understand the concept
+        - For technical concepts, provide industry applications
+        - For abstract concepts, provide everyday analogies
         
         RESPONSE FORMAT (JSON):
         {{
@@ -100,10 +105,26 @@ class ExplanationGenerator:
                 {{
                     "concept": "Concept Name",
                     "explanation": "Clear explanation of the concept",
-                    "importance": "Why this concept matters"
+                    "importance": "Why this concept matters",
+                    "real_life_examples": [
+                        {{
+                            "example": "Specific real-life example",
+                            "explanation": "How this example illustrates the concept"
+                        }}
+                    ]
                 }}
             ],
-            "detailed_explanation": "Comprehensive explanation covering all main points",
+            "detailed_explanation": "Comprehensive explanation covering all main points with examples",
+            "real_world_applications": [
+                "Application 1 in industry/business",
+                "Application 2 in daily life", 
+                "Application 3 in technology/science"
+            ],
+            "practical_tips": [
+                "How to apply this knowledge practically",
+                "Tips for implementation", 
+                "Common use cases"
+            ],
             "takeaways": [
                 "Key takeaway 1",
                 "Key takeaway 2",
@@ -142,7 +163,7 @@ class ExplanationGenerator:
     
     def generate_slide_by_slide_explanation(self, ppt_file_path: str, slide_numbers: List[int]) -> Dict[str, Any]:
         """
-        Generate explanations for each slide individually
+        Generate explanations for each slide individually with real-life examples
         """
         try:
             from ppt import get_slide_content
@@ -155,22 +176,34 @@ class ExplanationGenerator:
                     content = slide_content.get('content', '')
                     
                     if content.strip():
-                        # Generate explanation for this specific slide
+                        # Generate explanation for this specific slide with real-life examples
+                        # In generate_slide_by_slide_explanation method, update the prompt:
                         prompt = f"""
-                        Explain the content of this single presentation slide:
-                        
+                        Explain the content of this single presentation slide with REAL-LIFE EXAMPLES:
+
                         SLIDE {slide_num} CONTENT:
                         {content}
-                        
+
                         Provide a clear explanation of what this slide is about, 
                         the key messages it conveys, and any important details.
-                        
+                        INCLUDE RELEVANT REAL-LIFE EXAMPLES that help understand the concepts.
+
                         Return JSON format:
                         {{
                             "slide_number": {slide_num},
                             "slide_title": "Brief title of the slide",
                             "main_topic": "Main topic covered",
                             "explanation": "Detailed explanation of the slide content",
+                            "real_life_examples": [
+                                {{
+                                    "example": "Specific real-world example",
+                                    "explanation": "How this example relates to the concept"
+                                }}
+                            ],
+                            "practical_applications": [
+                                "Practical application 1",
+                                "Practical application 2"
+                            ],
                             "key_points": ["Point 1", "Point 2", "Point 3"]
                         }}
                         """
@@ -180,7 +213,7 @@ class ExplanationGenerator:
                             messages=[
                                 {
                                     "role": "system",
-                                    "content": "You are an expert presentation analyst. Provide clear explanations for individual slides."
+                                    "content": "You are an expert presentation analyst. Provide clear explanations for individual slides with practical, real-life examples."
                                 },
                                 {
                                     "role": "user", 
@@ -188,7 +221,7 @@ class ExplanationGenerator:
                                 }
                             ],
                             temperature=0.7,
-                            max_tokens=1000,
+                            max_tokens=1500,  # Increased for examples
                             response_format={"type": "json_object"}
                         )
                         
@@ -200,6 +233,8 @@ class ExplanationGenerator:
                             "slide_title": "Empty Slide",
                             "main_topic": "No content",
                             "explanation": "This slide appears to be empty or contains no text content.",
+                            "real_life_examples": [],
+                            "practical_applications": [],
                             "key_points": []
                         })
                         
@@ -209,6 +244,8 @@ class ExplanationGenerator:
                         "slide_title": "Error Processing Slide",
                         "main_topic": "Processing Error",
                         "explanation": f"Could not generate explanation for this slide: {str(e)}",
+                        "real_life_examples": [],
+                        "practical_applications": [],
                         "key_points": []
                     })
             

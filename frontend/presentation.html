@@ -18,21 +18,6 @@
         <div class="main-content">
             <div class="presentation-section">
                 <h2 class="section-title">Presentation</h2>
-                
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📊</div>
-                    <p class="upload-text">Drag & drop your PowerPoint file here or click to browse</p>
-                    <input type="file" id="fileInput" class="file-input" accept=".ppt,.pptx">
-                    <button class="btn" id="uploadBtn">Select PPT File</button>
-                </div>
-
-                <div class="presentation-selector" id="presentationSelector" style="display: none;">
-                    <h3>Available Presentations</h3>
-                    <div class="presentation-list" id="presentationList">
-                        <!-- Presentations will be loaded here -->
-                    </div>
-                </div>
-
                 <div class="presentation-view" id="presentationView">
                     <div class="presentation-info">
                         <h3 id="presentationTitle">Presentation Title</h3>
@@ -61,6 +46,21 @@
                         </div>
                     </div>
                 </div>
+                <div class="presentation-selector" id="presentationSelector" style="display: none;">
+                    <h3>Available Presentations</h3>
+                    <div class="presentation-list" id="presentationList">
+                        <!-- Presentations will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📊</div>
+                    <p class="upload-text">Drag & drop your PowerPoint file here or click to browse</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".ppt,.pptx">
+                    <button class="btn" id="uploadBtn">Select PPT File</button>
+                </div>
+
+
 
                 <div class="loading" id="uploadLoading">
                     <div class="spinner"></div>
@@ -154,6 +154,7 @@
                                 Generate slide-by-slide explanation
                             </label>
                         </div>
+                        
 
                         <button class="btn btn-secondary" id="generateExplanationBtn" >
                             <i data-feather="book-open"></i> Generate Explanation

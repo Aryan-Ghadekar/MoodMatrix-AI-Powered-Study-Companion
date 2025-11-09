@@ -204,6 +204,7 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 15px;
+            margin-bottom: 30px;
         }
 
         .slide-nav {
@@ -644,11 +645,12 @@
 /* Slide Image Styles */
 .slide-image-container {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 100px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
+    
 }
 
 .slide-image {
@@ -657,6 +659,7 @@
     object-fit: contain;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    
 }
 
 .slide-content-overlay {
@@ -1764,4 +1767,177 @@
     font-size: 0.9rem;
     margin: 0.5rem 0;
     border: 1px solid #fed7aa;
+}
+
+/* Real-life examples styles */
+.real-life-examples {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 193, 7, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+}
+
+.real-life-examples h5 {
+    color: #d97706;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.examples-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.example-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background:var(--bg-primary);
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.example-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.example-content {
+    flex: 1;
+}
+
+.example-content strong {
+    color: white;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.example-explanation {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Applications section */
+.applications-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #10b981;
+}
+
+.applications-section h4 {
+    color: #059669;
+    margin-bottom: 1rem;
+}
+
+.applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.application-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid white;
+    border-radius: 8px;
+}
+
+.application-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.application-text {
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* Practical tips section */
+.practical-tips-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #8b5cf6;
+}
+
+.practical-tips-section h4 {
+    color: #7c3aed;
+    margin-bottom: 1rem;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid white;
+    border-radius: 8px;
+}
+
+.tip-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.tip-text {
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* Slide-specific real-life examples */
+.slide-real-life-examples {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 193, 7, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+}
+
+.slide-practical-applications {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #10b981;
+}
+
+.slide-practical-applications h5 {
+    color: #059669;
+    margin-bottom: 1rem;
+}
+
+.slide-practical-applications ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.slide-practical-applications li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+/* Fix this in .explanation-ready */
+.explanation-ready {
+    text-align: center;
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border); /* Changed from --border-color */
 }
