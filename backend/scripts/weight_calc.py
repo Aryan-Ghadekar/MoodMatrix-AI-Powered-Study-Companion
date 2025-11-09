@@ -15,7 +15,7 @@ import joblib
 DATA_DIR = "cognitive_load_dataset_csv"  # folder with all CSV session files
 EMOTION_KEYS = ['happy', 'sad', 'angry', 'fear', 'disgust', 'surprise', 'neutral']
 OUTPUT_JSON = "emotion_weights.json"
-SCALER_FILE = "emotion_scaler.pkl"
+SCALER_FILE = os.path.join("models", "emotion_scaler.pkl") #Save the scaler for real-time use in models folder
 
 # -----------------------------
 # STEP 1: LOAD ALL CSV FILES
