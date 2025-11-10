@@ -33,7 +33,7 @@ MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimi
 ## Features  
 - **Emotion-Aware Study Companion** – Detects and adapts to your emotional state during study sessions.  
 - **AI Tutor for Discussion** – Ask questions, clarify doubts, and get real-time guidance.  
-- **Distraction Monitor** – Tracks posture, facial cues, and audio signals to minimize distractions.  
+- **Cognitive Load Monitor** – Tracks posture and facial cues to find the cognitive load.  
 - **Motivational Friend** – Encourages and boosts morale throughout study sessions.  
 - **Dynamic Time-Table** – Creates adaptive schedules with priority-wise task execution.  
 - **Emotional Stats Analyzer** – Generates insights and personalized timetables based on mood data.  
@@ -136,7 +136,7 @@ Poppler is required for converting PDF files to images (used by libraries like `
      ```bash
      pdftoppm -h
      ```
-   - ✅ If installed correctly, it will show Poppler usage instructions.
+   - If installed correctly, it will show Poppler usage instructions.
 
 ---
 
@@ -168,6 +168,16 @@ LibreOffice is required for converting PowerPoint (.ppt/.pptx) files to images o
      ```bash
      soffice --version
      ```
-   - ✅ If installed correctly, you’ll see LibreOffice version info.
+   - If installed correctly, you’ll see LibreOffice version info.
 
 
+## 📊 Results & Analysis
+
+### 🧠 Cognitive Load Calculation Performance
+
+<p align="center">
+  <img src="assets/cognitive_load_result.png" alt="Confusion Matrix and Emotion Importance" width="85%">
+</p>
+
+
+The model identified “surprise”, “sad”, and “fear” as the most influential emotional states affecting cognitive load, followed by happy, neutral, angry, and disgust thus the weights for respective emotions are assigned accordingly.
