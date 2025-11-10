@@ -1,13 +1,30 @@
 # MoodMatrix – AI-Powered Study Companion  
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
-![Framework](https://img.shields.io/badge/framework-FastAPI-009688?logo=fastapi&logoColor=white)
-![Frontend](https://img.shields.io/badge/frontend-HTML%2FCSS%2FJS-orange?logo=javascript)
-![AI](https://img.shields.io/badge/AI-DeepFace%20%7C%20MediaPipe%20%7C%20YOLO-yellow)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Jetson%20Nano-lightgrey)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?logo=github)](https://github.com/your-username/MoodMatrix)
-![Status](https://img.shields.io/badge/status-Active-success)
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+  </a>
+  <a href="https://www.python.org/downloads/">
+    <img src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white" alt="Python Version">
+  </a>
+  <a href="https://fastapi.tiangolo.com/">
+    <img src="https://img.shields.io/badge/framework-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI Framework">
+  </a>
+  <a href="https://developer.mozilla.org/en-US/docs/Learn/Front-end_web_developer">
+    <img src="https://img.shields.io/badge/frontend-HTML%2FCSS%2FJS-orange?logo=javascript" alt="Frontend Stack">
+  </a>
+  <a href="https://github.com/serengil/deepface">
+    <img src="https://img.shields.io/badge/AI-DeepFace%20%7C%20MediaPipe%20%7C%20YOLO-yellow" alt="AI Stack">
+  </a>
+  <a href="https://developer.nvidia.com/embedded/jetson-nano-developer-kit">
+    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Jetson%20Nano-lightgrey" alt="Platform">
+  </a>
+  <a href="https://github.com/aryan-eng/MoodMatrix">
+    <img src="https://img.shields.io/badge/GitHub-Repo-black?logo=github" alt="GitHub Repo">
+  </a>
+  <img src="https://img.shields.io/badge/status-Active-success" alt="Project Status">
+</p>
+
 
 MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimize learning, improve focus, and support students with real-time emotional intelligence. It integrates AI with IoT hardware to create a personalized and distraction-free study environment.  
 
