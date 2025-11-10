@@ -1,4 +1,4 @@
-# Added Mathematical Part in the code to calculate Cognitive Load based on the Emotions
+# Demo Code Added Mathematical Part in the code to calculate Cognitive Load based on the Emotions
 
 from deepface import DeepFace
 import cv2
@@ -7,15 +7,15 @@ import time
 from collections import deque
 
 # --- Model Parameters ---
-W = np.array([0.2, 0.4, 0.6, 0.5, -0.6, -0.1, 1.0])
+W = np.array([0.2, 0.5, 0.6, 0.5, -0.6, -0.1, 1.0])
 EMOTION_KEYS = ['happy', 'sad', 'angry', 'fear', 'disgust', 'surprise', 'neutral']
 
 # Constants
 alpha1 = 0.8      # sensitivity to focus
 alpha2 = 1.2      # sensitivity to effort
-beta = 0.85       # smoothing constant for focus
+beta = 0.95       # smoothing constant for focus
 WINDOW_DURATION = 5   # seconds for averaging window
-FPS_ESTIMATE = 10      # approx frames per second
+FPS_ESTIMATE = 10     
 
 # Initialize focus and load histories
 prev_focus = [0.5 for _ in range(30)]
@@ -41,26 +41,26 @@ while True:
             emotions = result['emotion']
             E = np.array([emotions.get(k, 0) for k in EMOTION_KEYS]) / 100.0
 
-            # 1️⃣ Calculate Focus
+            # 1 Calculate Focus
             F = np.dot(E, W)
             F = np.clip(F, 0, 1)
 
-            # 2️⃣ Smooth Focus using EMA
+            # 2️ Smooth Focus using EMA
             smoothed_F = beta * prev_focus[idx] + (1 - beta) * F
             prev_focus[idx] = smoothed_F
 
-            # 3️⃣ Effort (e')
+            # 3 Effort (e')
             e_dash = (W[3] * E[3]) + (W[2] * E[2]) + (W[1] * E[1])
 
-            # 4️⃣ Instantaneous Cognitive Load
+            # 4️ Instantaneous Cognitive Load
             CL_instant = 1 - np.exp(-alpha1 * (1 - smoothed_F) - alpha2 * e_dash)
             CL_instant = np.clip(CL_instant, 0, 1)
 
-            # 5️⃣ Rolling Average over Time Window
+            # 5️ Moving Average over Time Window
             load_history[idx].append(CL_instant)
             CL_avg = np.mean(load_history[idx]) if len(load_history[idx]) > 0 else CL_instant
 
-            # 6️⃣ Display every few seconds (more realistic behavior)
+            # 6️ Display every few seconds (more realistic behavior)
             elapsed = time.time() - start_time
             if elapsed > WINDOW_DURATION:
                 emotion = result['dominant_emotion']
