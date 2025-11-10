@@ -1,4 +1,4 @@
-# This code is used to calculate the weights of different emotions on cognitive load
+# This code is used to calculate the weights of different emotions on cognitive load using Linear Regression
 
 import os
 import pandas as pd
