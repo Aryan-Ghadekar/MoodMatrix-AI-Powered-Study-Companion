@@ -1,5 +1,14 @@
 # MoodMatrix – AI-Powered Study Companion  
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
+![Framework](https://img.shields.io/badge/framework-FastAPI-009688?logo=fastapi&logoColor=white)
+![Frontend](https://img.shields.io/badge/frontend-HTML%2FCSS%2FJS-orange?logo=javascript)
+![AI](https://img.shields.io/badge/AI-DeepFace%20%7C%20MediaPipe%20%7C%20YOLO-yellow)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Jetson%20Nano-lightgrey)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?logo=github)](https://github.com/your-username/MoodMatrix)
+![Status](https://img.shields.io/badge/status-Active-success)
+
 MoodMatrix is an **AI-powered emotion-aware study companion** designed to optimize learning, improve focus, and support students with real-time emotional intelligence. It integrates AI with IoT hardware to create a personalized and distraction-free study environment.  
 
 ---
