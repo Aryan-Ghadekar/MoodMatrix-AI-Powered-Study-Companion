@@ -4,12 +4,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dyanamic Timetable</title>
+    <title>Dynamic Timetable</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="timetable.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="just.css">
 </head>
 
 <body>
@@ -21,7 +21,7 @@
                 MoodMatrix
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" onclick="showSection('hero')">Home</a></li>
+                <li><a href="#" onclick="showSection('hero')">Home</a></li>
                 <li><a href="#" onclick="showSection('dashboard')">Dashboard</a></li>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#about">About</a></li>
@@ -35,14 +35,14 @@
 
     <section class="hero" id="heroSection">
         <div class="hero-content fade-in">
-            <!-- Add mode toggle button -->
+            <!-- Mode toggle button -->
             <div class="mode-toggle-container">
                 <button id="modeToggleBtn" class="btn btn-toggle">
-                    <i class="fas fa-calendar"></i> Switch to Hourly Mode
+                    <i class="fas fa-calendar"></i> Switch to Daily Mode
                 </button>
             </div>
 
-            <!-- Wrapped tables in a container for side-by-side layout -->
+            <!-- Tables in side-by-side layout -->
             <div class="tables-container">
                 <!-- Cognitive Load Table -->
                 <div class="table-wrapper">
@@ -58,23 +58,23 @@
                             <tbody>
                                 <tr>
                                     <td>09:00-10:00</td>
-                                    <td><input type="number" step="0.01" value="0.9"></input>
+                                    <td><input type="number" step="0.01" min="0" max="1" value="0.9"></td>
                                 </tr>
                                 <tr>
                                     <td>10:00-11:00</td>
-                                    <td><input type="number" step="0.01" value="0.85"></td>
+                                    <td><input type="number" step="0.01" min="0" max="1" value="0.85"></td>
                                 </tr>
                                 <tr>
                                     <td>11:00-12:00</td>
-                                    <td><input type="number" step="0.01" value="0.7"></td>
+                                    <td><input type="number" step="0.01" min="0" max="1" value="0.7"></td>
                                 </tr>
                                 <tr>
                                     <td>14:00-15:00</td>
-                                    <td><input type="number" step="0.01" value="0.5"></td>
+                                    <td><input type="number" step="0.01" min="0" max="1" value="0.5"></td>
                                 </tr>
                                 <tr>
                                     <td>18:00-19:00</td>
-                                    <td><input type="number" step="0.01" value="0.65"></td>
+                                    <td><input type="number" step="0.01" min="0" max="1" value="0.65"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -97,7 +97,7 @@
                                     <td><input type="text" value="Math"></td>
                                     <td>
                                         <select>
-                                            <option>Hard</option>
+                                            <option selected>Hard</option>
                                             <option>Medium</option>
                                             <option>Easy</option>
                                         </select>
@@ -157,20 +157,29 @@
                 <button id="editBtn" class="btn btn-secondary" style="display:none;">
                     <i class="fas fa-pencil"></i> Edit Timetable
                 </button>
+                <!-- <button id="downloadBtn" class="btn btn-secondary" style="display:none;">
+                    <i class="fas fa-download"></i> Download PDF
+                </button> -->
             </div>
 
             <!-- Generated Timetable Section -->
             <div id="timetable-section" class="timetable-section">
-                <h2 class="section-title"><i class="fas fa-clock"></i> Generated Timetable</h2>
+                <h2 class="section-title"><i class="fas fa-clock"></i> Generated Weekly Timetable</h2>
+
+                <!-- Legend for subject colors -->
+                <div class="legend-container" id="legendContainer" style="display:none;">
+                    <h3 class="legend-title">Subject Color Legend</h3>
+                    <div class="legend-items" id="legendItems"></div>
+                </div>
+
                 <div class="timetable-wrapper">
                     <table id="timetableTable" class="timetable">
                         <thead>
-                            <tr>
-                                <th>Days</th>
-                                <th>Time Slots</th>
+                            <tr id="headerRow">
+                                <th class="time-header">Time Slot</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="timetableBody">
                         </tbody>
                     </table>
                 </div>
@@ -180,17 +189,33 @@
 
     <script>
         let isHourlyMode = true;
+        let currentTimetableData = null;
+        let subjectColors = {};
+
+        const colorPalette = [
+            { name: 'Math', bg: '#6366f1', text: '#ffffff' },        // Indigo (primary blend)
+            { name: 'Physics', bg: '#8b5cf6', text: '#ffffff' },     // Violet (secondary blend)
+            { name: 'Chemistry', bg: '#f59e0b', text: '#1f2937' },   // Amber (accent blend)
+            { name: 'English', bg: '#14b8a6', text: '#ffffff' },     // Teal (accent blend)
+            { name: 'History', bg: '#ec4899', text: '#ffffff' },     // Pink
+            { name: 'Biology', bg: '#10b981', text: '#ffffff' },     // Emerald
+            { name: 'Geography', bg: '#06b6d4', text: '#ffffff' },   // Cyan
+            { name: 'Art', bg: '#a855f7', text: '#ffffff' },         // Purple
+            { name: 'PE', bg: '#f97316', text: '#ffffff' },          // Orange
+            { name: 'CS', bg: '#3b82f6', text: '#ffffff' }           // Blue
+        ];
 
         const generateBtn = document.getElementById("generateBtn");
         const editBtn = document.getElementById("editBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
         const modeToggleBtn = document.getElementById("modeToggleBtn");
 
         modeToggleBtn.addEventListener("click", () => {
             isHourlyMode = !isHourlyMode;
             updateCognitiveTable();
-            modeToggleBtn.textContent = isHourlyMode
-                ? '\ufaff Switch to Daily Mode'
-                : '\uf133 Switch to Hourly Mode';
+            modeToggleBtn.innerHTML = isHourlyMode
+                ? '<i class="fas fa-calendar"></i> Switch to Daily Mode'
+                : '<i class="fas fa-calendar-days"></i> Switch to Hourly Mode';
         });
 
         function updateCognitiveTable() {
@@ -198,7 +223,6 @@
             tbody.innerHTML = "";
 
             if (isHourlyMode) {
-                // Hourly mode: time slots
                 const slots = [
                     { time: "09:00-10:00", value: 0.9 },
                     { time: "10:00-11:00", value: 0.85 },
@@ -212,37 +236,53 @@
                     const input = document.createElement("input");
                     input.type = "number";
                     input.step = "0.01";
+                    input.min = "0";
+                    input.max = "1";
                     input.value = slot.value;
                     row.insertCell(1).appendChild(input);
                 });
             } else {
-                // Daily mode: days of week
-                const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                const values = [0.9, 0.6, 0.7, 0.5, 0.8, 0.4, 0.3];
+                const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+                const values = [0.9, 0.6, 0.7, 0.5, 0.8];
                 days.forEach((day, i) => {
                     const row = tbody.insertRow();
                     row.insertCell(0).textContent = day;
                     const input = document.createElement("input");
                     input.type = "number";
                     input.step = "0.01";
+                    input.min = "0";
+                    input.max = "1";
                     input.value = values[i];
                     row.insertCell(1).appendChild(input);
                 });
             }
         }
 
+        function initializeSubjectColors() {
+            subjectColors = {};
+            let colorIndex = 0;
+            document.querySelectorAll("#subjectsTable tbody tr").forEach((row) => {
+                const name = row.cells[0].querySelector("input").value.trim();
+                if (!subjectColors[name]) {
+                    const color = colorPalette[colorIndex % colorPalette.length];
+                    subjectColors[name] = color;
+                    colorIndex++;
+                }
+            });
+        }
+
         generateBtn.addEventListener("click", async () => {
+            initializeSubjectColors();
+
             let cognitiveData = {};
 
             if (isHourlyMode) {
-                // Hourly mode: use time slots as keys
                 document.querySelectorAll("#cognitiveTable tbody tr").forEach((row) => {
                     const time = row.cells[0].textContent.trim();
                     const value = parseFloat(row.cells[1].querySelector("input").value);
                     cognitiveData[time] = value;
                 });
             } else {
-                // Daily mode: use day names as keys
                 document.querySelectorAll("#cognitiveTable tbody tr").forEach((row) => {
                     const day = row.cells[0].textContent.trim();
                     const value = parseFloat(row.cells[1].querySelector("input").value);
@@ -250,12 +290,10 @@
                 });
             }
 
-            // Collect subject data with difficulty
             const subjects = {};
             document.querySelectorAll("#subjectsTable tbody tr").forEach((row) => {
                 const name = row.cells[0].querySelector("input").value.trim();
                 const difficulty = row.cells[1].querySelector("select").value;
-                // Convert difficulty to numeric weight
                 const weight = difficulty === "Hard" ? 5 : difficulty === "Medium" ? 3 : 1;
                 subjects[name] = weight;
             });
@@ -267,42 +305,118 @@
                     body: JSON.stringify({ cognitive_data: cognitiveData, subjects }),
                 });
 
-                // const data = await response.json();
-                // displayTimetable(data.timetable);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
-                displayTimetable(data.weekly_timetable);
+                currentTimetableData = data.weekly_timetable;
+                displayTimetable(currentTimetableData);
 
             } catch (error) {
                 alert("Error generating timetable: " + error.message);
+                console.error("Error:", error);
             }
         });
 
         function displayTimetable(timetable) {
-            const tbody = document.querySelector("#timetableTable tbody");
+            const headerRow = document.getElementById("headerRow");
+            const tbody = document.getElementById("timetableBody");
+
+            headerRow.innerHTML = '<th class="time-header">Time Slot</th>';
             tbody.innerHTML = "";
 
-            for (const [slot, subjects] of Object.entries(timetable)) {
+            const days = Object.keys(timetable);
+            const timeSlotsSet = new Set();
+
+            // collect all slots
+            days.forEach(day => {
+                Object.keys(timetable[day]).forEach(slot => timeSlotsSet.add(slot));
+            });
+
+            const timeSlots = Array.from(timeSlotsSet);
+
+            // create day headers
+            days.forEach(day => {
+                const th = document.createElement("th");
+                th.textContent = day;
+                headerRow.appendChild(th);
+            });
+
+            // create rows per time slot
+            timeSlots.forEach(slot => {
                 const row = tbody.insertRow();
-                const cell1 = row.insertCell(0);
-                const cell2 = row.insertCell(1);
+                const timeCell = row.insertCell();
+                timeCell.textContent = slot;
+                timeCell.className = "time-cell";
 
-                cell1.textContent = slot;
+                days.forEach(day => {
+                    const cell = row.insertCell();
+                    const subject = timetable[day][slot] || "-";
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.value = subject;
+                    input.disabled = true;
+                    input.className = "timetable-input";
 
-                // Handle subjects as array (multiple subjects per slot) or string
-                const subjectText = Array.isArray(subjects) ? subjects.join(", ") : subjects;
-                cell2.innerHTML = `<input type="text" value="${subjectText}" disabled>`;
-            }
+                    if (subjectColors[subject]) {
+                        const color = subjectColors[subject];
+                        cell.style.backgroundColor = color.bg;
+                        cell.style.color = color.text;
+                        cell.className = "colored-cell";
+                    }
 
-            document.getElementById("timetable-section").style.display = "block";
+                    cell.appendChild(input);
+                });
+            });
+
+            displayLegend();
+            document.getElementById("timetable-section").classList.add("active");
             editBtn.style.display = "inline-flex";
+            downloadBtn.style.display = "inline-flex";
             editBtn.scrollIntoView({ behavior: "smooth" });
+        }
+
+
+        function displayLegend() {
+            const legendContainer = document.getElementById("legendContainer");
+            const legendItems = document.getElementById("legendItems");
+            legendItems.innerHTML = "";
+
+            Object.entries(subjectColors).forEach(([subject, color]) => {
+                const item = document.createElement("div");
+                item.className = "legend-item";
+                item.innerHTML = `
+                    <div class="legend-color" style="background-color: ${color.bg};"></div>
+                    <span class="legend-label">${subject}</span>
+                `;
+                legendItems.appendChild(item);
+            });
+
+            legendContainer.style.display = "block";
         }
 
         editBtn.addEventListener("click", () => {
             const inputs = document.querySelectorAll("#timetableTable input");
-            const editable = inputs[0].disabled; // toggle state
+            const editable = inputs[0].disabled;
             inputs.forEach(inp => inp.disabled = !editable);
-            editBtn.innerHTML = editable ? '<i class="fas fa-floppy-disk"></i> Save Timetable' : '<i class="fas fa-pencil"></i> Edit Timetable';
+            editBtn.innerHTML = editable
+                ? '<i class="fas fa-floppy-disk"></i> Save Timetable'
+                : '<i class="fas fa-pencil"></i> Edit Timetable';
+        });
+
+        downloadBtn.addEventListener("click", () => {
+            const element = document.getElementById("timetable-section");
+            const opt = {
+                margin: 10,
+                filename: 'timetable.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCognitiveTable();
         });
     </script>
 </body>
