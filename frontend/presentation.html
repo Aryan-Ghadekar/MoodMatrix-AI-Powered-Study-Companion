@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="stylesheet" href="presentation.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -36,9 +38,9 @@
                             <button class="btn" id="prevSlide">Previous</button>
                             <span id="currentSlide">Slide 1 of 10</span>
                             <button class="btn" id="nextSlide">Next</button>
-                            
+
                             <button class="btn btn-accent" id="presentModeBtn">
-                                <i data-feather="play">Present</i> 
+                                <i data-feather="play">Present</i>
                             </button>
                         </div>
                         <div class="slide-actions">
@@ -52,7 +54,7 @@
                         <!-- Presentations will be loaded here -->
                     </div>
                 </div>
-                
+
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📊</div>
                     <p class="upload-text">Drag & drop your PowerPoint file here or click to browse</p>
@@ -77,7 +79,7 @@
                     <button class="tab-btn" data-tab="explanation">AI Explanation</button>
                 </div>
 
-                <!-- Quiz Tab Content -->
+
                 <!-- Quiz Tab Content -->
                 <div class="tab-content active" id="quiz-tab">
                     <div class="quiz-controls">
@@ -94,12 +96,14 @@
                                 <option value="all">All slides</option>
                             </select>
                         </div>
+                        
 
                         <!-- NEW: Timer Configuration -->
                         <div class="form-group">
                             <label for="timePerQuestion">Time per question (seconds)</label>
                             <input type="number" id="timePerQuestion" min="0" max="300" value="60">
-                            <small style="font-size: 0.8rem; color: var(--text-secondary);">Set 0 for no time limit</small>
+                            <small style="font-size: 0.8rem; color: var(--text-secondary);">Set 0 for no time
+                                limit</small>
                         </div>
 
                         <!-- OPTIONAL: Auto-progress toggle -->
@@ -154,9 +158,9 @@
                                 Generate slide-by-slide explanation
                             </label>
                         </div>
-                        
 
-                        <button class="btn btn-secondary" id="generateExplanationBtn" >
+
+                        <button class="btn btn-secondary" id="generateExplanationBtn">
                             <i data-feather="book-open"></i> Generate Explanation
                         </button>
                     </div>
@@ -179,110 +183,111 @@
     </div>
 
     <!-- Fullscreen Quiz Modal -->
-<div id="quizModal" class="quiz-modal">
-    <div class="quiz-modal-content">
-        <div class="quiz-modal-header">
-            <div class="quiz-timer">
-                <i data-feather="clock"></i>
-                <span id="quizTimer">00:00</span>
-            </div>
-            <div class="quiz-progress">
-                <span id="currentQuestionNumber">1</span> / <span id="totalQuestions">0</span>
-            </div>
-            <button class="btn btn-secondary" id="exitFullscreenQuiz">
-                <i data-feather="minimize"></i> Exit
-            </button>
-        </div>
-        
-        <div class="quiz-modal-body" id="quizModalBody">
-            <!-- Quiz content will be loaded here -->
-        </div>
-        
-        <div class="quiz-modal-footer">
-            <button class="btn" id="prevQuestionBtn" disabled>
-                <i data-feather="arrow-left"></i> Previous
-            </button>
-            <button class="btn btn-secondary" id="nextQuestionBtn">
-                Next <i data-feather="arrow-right"></i>
-            </button>
-            <button class="btn btn-accent" id="submitQuizBtn" style="display: none;">
-                <i data-feather="check-circle"></i> Submit Quiz
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Fullscreen Explanation Modal -->
-<div id="explanationModal" class="explanation-modal">
-    <div class="explanation-modal-content">
-        <div class="explanation-modal-header">
-            <div class="explanation-title-large">
-                <i data-feather="book-open"></i>
-                <span id="explanationModalTitle">AI Explanation</span>
-            </div>
-            <div class="explanation-controls-large">
-                <button class="btn btn-control" id="listenExplanationBtn">
-                    <i data-feather="volume-2"></i> Listen
-                </button>
-                <button class="btn btn-control" id="pauseExplanationBtn" style="display: none;">
-                    <i data-feather="pause"></i> Pause
-                </button>
-                <button class="btn btn-secondary" id="exitFullscreenExplanation">
+    <div id="quizModal" class="quiz-modal">
+        <div class="quiz-modal-content">
+            <div class="quiz-modal-header">
+                <div class="quiz-timer">
+                    <i data-feather="clock"></i>
+                    <span id="quizTimer">00:00</span>
+                </div>
+                <div class="quiz-progress">
+                    <span id="currentQuestionNumber">1</span> / <span id="totalQuestions">0</span>
+                </div>
+                <button class="btn btn-secondary" id="exitFullscreenQuiz">
                     <i data-feather="minimize"></i> Exit
                 </button>
             </div>
-        </div>
-        
-        <div class="explanation-modal-body" id="explanationModalBody">
-            <!-- Explanation content will be loaded here -->
-        </div>
-        
-        <div class="explanation-modal-footer">
-            <div class="explanation-progress">
-                <div class="progress-info">
-                    <span id="currentExplanationPart">1</span> of <span id="totalExplanationParts">1</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="explanationProgressFill"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Presentation Modal -->
-<div id="presentationModal" class="presentation-modal">
-    <div class="presentation-container">
-        <div class="presentation-header">
-            <div class="presentation-info">
-                <span id="presentationTitleModal">Presentation Title</span>
-                <span class="slide-counter" id="slideCounterModal">Slide 1 of 10</span>
+            <div class="quiz-modal-body" id="quizModalBody">
+                <!-- Quiz content will be loaded here -->
             </div>
-            <div class="presentation-controls">
-                <button class="btn btn-control" id="prevSlideModal">
-                    <i data-feather="chevron-left"></i>
+
+            <div class="quiz-modal-footer">
+                <button class="btn" id="prevQuestionBtn" disabled>
+                    <i data-feather="arrow-left"></i> Previous
                 </button>
-                <button class="btn btn-control" id="nextSlideModal">
-                    <i data-feather="chevron-right"></i>
+                <button class="btn btn-secondary" id="nextQuestionBtn">
+                    Next <i data-feather="arrow-right"></i>
                 </button>
-                <button class="btn btn-control" id="exitPresentMode">
-                    <i data-feather="x"></i> Exit
+                <button class="btn btn-accent" id="submitQuizBtn" style="display: none;">
+                    <i data-feather="check-circle"></i> Submit Quiz
                 </button>
-            </div>
-        </div>
-        
-        <div class="presentation-content" id="presentationContentModal">
-            <!-- Slide content will be loaded here -->
-        </div>
-        
-        <div class="presentation-progress">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Fullscreen Explanation Modal -->
+    <div id="explanationModal" class="explanation-modal">
+        <div class="explanation-modal-content">
+            <div class="explanation-modal-header">
+                <div class="explanation-title-large">
+                    <i data-feather="book-open"></i>
+                    <span id="explanationModalTitle">AI Explanation</span>
+                </div>
+                <div class="explanation-controls-large">
+                    <button class="btn btn-control" id="listenExplanationBtn">
+                        <i data-feather="volume-2"></i> Listen
+                    </button>
+                    <button class="btn btn-control" id="pauseExplanationBtn" style="display: none;">
+                        <i data-feather="pause"></i> Pause
+                    </button>
+                    <button class="btn btn-secondary" id="exitFullscreenExplanation">
+                        <i data-feather="minimize"></i> Exit
+                    </button>
+                </div>
+            </div>
+
+            <div class="explanation-modal-body" id="explanationModalBody">
+                <!-- Explanation content will be loaded here -->
+            </div>
+
+            <div class="explanation-modal-footer">
+                <div class="explanation-progress">
+                    <div class="progress-info">
+                        <span id="currentExplanationPart">1</span> of <span id="totalExplanationParts">1</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="explanationProgressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Presentation Modal -->
+    <div id="presentationModal" class="presentation-modal">
+        <div class="presentation-container">
+            <div class="presentation-header">
+                <div class="presentation-info">
+                    <span id="presentationTitleModal">Presentation Title</span>
+                    <span class="slide-counter" id="slideCounterModal">Slide 1 of 10</span>
+                </div>
+                <div class="presentation-controls">
+                    <button class="btn btn-control" id="prevSlideModal">
+                        <i data-feather="chevron-left"></i>
+                    </button>
+                    <button class="btn btn-control" id="nextSlideModal">
+                        <i data-feather="chevron-right"></i>
+                    </button>
+                    <button class="btn btn-control" id="exitPresentMode">
+                        <i data-feather="x"></i> Exit
+                    </button>
+                </div>
+            </div>
+
+            <div class="presentation-content" id="presentationContentModal">
+                <!-- Slide content will be loaded here -->
+            </div>
+
+            <div class="presentation-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="presentation.js"></script>
 </body>
+
 </html>
