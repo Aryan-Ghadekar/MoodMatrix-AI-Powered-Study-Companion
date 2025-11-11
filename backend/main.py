@@ -15,7 +15,7 @@ import base64
 from io import BytesIO
 from gtts import gTTS
 from dyanamic_timetable import timetable_router
-
+from cognitive_route import router as cognitive_router
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="SlideSense API")
 app.include_router(timetable_router)
+app.include_router(cognitive_router)
 
 # CORS middleware
 app.add_middleware(
@@ -493,6 +494,10 @@ async def generate_real_life_examples(
     except Exception as e:
         logger.error(f"Real-life examples generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Real-life examples generation failed: {str(e)}")
+    
+
+
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -130,6 +130,289 @@ document.getElementById('nextSlideModal').addEventListener('click', showNextSlid
 document.addEventListener('keydown', handlePresentationKeyboard);
 
 
+// Cognitive Load Alert Throttling
+let lastAlertTime = 0;
+let alertCount = 0;
+let alertResetTimer = null;
+
+function canShowAlert() {
+    const now = Date.now();
+    const oneMinute = 60000; // 1 minute in milliseconds
+    
+    // Reset counter if more than 1 minute has passed since first alert
+    if (now - lastAlertTime > oneMinute) {
+        alertCount = 0;
+        lastAlertTime = now;
+    }
+    
+    // Check if we haven't exceeded 2 alerts per minute
+    if (alertCount < 2) {
+        alertCount++;
+        return true;
+    }
+    
+    return false;
+}
+
+function resetAlertCounter() {
+    alertCount = 0;
+    lastAlertTime = Date.now();
+}
+
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadAvailablePresentations();
+    initTabs();
+    
+    // Start backend status monitoring
+    checkBackendStatus();
+    statusCheckInterval = setInterval(checkBackendStatus, 10000);
+    
+    // Start cognitive load monitoring
+    initCognitiveLoadMonitoring();
+    
+    // Check status when page becomes visible
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkBackendStatus();
+        }
+    });
+});
+
+
+
+
+
+// Backend Status Monitoring
+async function checkBackendStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/health`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            updateBackendStatus('active');
+        } else {
+            updateBackendStatus('inactive');
+        }
+    } catch (error) {
+        console.log('Backend connection failed:', error);
+        updateBackendStatus('inactive');
+    }
+}
+
+function updateBackendStatus(status) {
+    if (backendStatus === status) return;
+    
+    backendStatus = status;
+    const statusIndicator = document.getElementById('backendStatusIndicator');
+    
+    if (statusIndicator) {
+        const statusDot = statusIndicator.querySelector('.status-dot');
+        const statusText = statusIndicator.querySelector('span');
+        
+        if (status === 'active') {
+            statusDot.style.background = 'var(--success)';
+            statusText.textContent = 'Backend Active';
+            statusDot.classList.add('active');
+        } else {
+            statusDot.style.background = 'var(--danger)';
+            statusText.textContent = 'Backend Inactive';
+            statusDot.classList.remove('active');
+        }
+    }
+}
+
+// Cognitive Load Monitoring
+function initCognitiveLoadMonitoring() {
+    try {
+        cognitiveLoadSocket = new WebSocket(`ws://localhost:8000/cognitive-load/ws`);
+        
+        cognitiveLoadSocket.onopen = function(event) {
+            console.log('Cognitive load WebSocket connected');
+            updateCognitiveStatus('Connected');
+        };
+        
+        cognitiveLoadSocket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'status_update') {
+                    updateCognitiveDisplay(data.data);
+                } else if (data.type === 'cognitive_load_alert') {
+                    // Apply throttling to alerts
+                    showCognitiveLoadAlert(data);
+                }
+            } catch (e) {
+                console.error('Error parsing WebSocket message:', e);
+            }
+        };
+        
+        cognitiveLoadSocket.onclose = function(event) {
+            console.log('Cognitive load WebSocket disconnected');
+            updateCognitiveStatus('Disconnected');
+            setTimeout(initCognitiveLoadMonitoring, 5000);
+        };
+        
+        cognitiveLoadSocket.onerror = function(error) {
+            console.error('Cognitive load WebSocket error:', error);
+            updateCognitiveStatus('Error');
+        };
+    } catch (error) {
+        console.error('Failed to initialize WebSocket:', error);
+        updateCognitiveStatus('Failed');
+    }
+}
+
+function updateCognitiveDisplay(data) {
+    let cognitiveCard = document.getElementById('cognitive-load-card');
+    
+    if (!cognitiveCard) {
+        cognitiveCard = createCognitiveLoadCard();
+    }
+    
+    cognitiveCard.innerHTML = `
+        <div class="card-header">
+            <div class="card-icon">
+                <i data-feather="brain"></i>
+            </div>
+            <h3>Cognitive Load Monitor</h3>
+            <div class="status-indicator" style="margin-left: auto;">
+                <div class="status-dot active"></div>
+                <span>External Monitoring</span>
+            </div>
+        </div>
+        
+        <div class="cognitive-stats">
+            <div class="cognitive-stat">
+                <div class="stat-value" style="color: ${data.current_load > 50 ? 'var(--warning)' : 'var(--success)'}">
+                    ${data.current_load.toFixed(1)}%
+                </div>
+                <div class="stat-label">Overall Load</div>
+            </div>
+            <div class="cognitive-stat">
+                <div class="stat-value">${data.emotion_load.toFixed(1)}%</div>
+                <div class="stat-label">Emotion</div>
+            </div>
+            <div class="cognitive-stat">
+                <div class="stat-value">${data.body_load.toFixed(1)}%</div>
+                <div class="stat-label">Body Posture</div>
+            </div>
+        </div>
+        
+        <div class="cognitive-info">
+            <p><i data-feather="info"></i> Data from external cognitive_load_fusion.py</p>
+            <p><i data-feather="refresh-cw"></i> Updates every 5 seconds</p>
+        </div>
+        
+        ${data.last_alert ? `
+            <div class="last-alert">
+                <i data-feather="alert-triangle"></i>
+                Last alert: ${new Date(data.last_alert * 1000).toLocaleTimeString()}
+            </div>
+        ` : ''}
+    `;
+    
+    feather.replace();
+}
+
+function createCognitiveLoadCard() {
+    const card = document.createElement('div');
+    card.className = 'dashboard-card';
+    card.id = 'cognitive-load-card';
+    
+    // Add to the dashboard section or create a new section
+    const dashboardSection = document.getElementById('dashboardSection');
+    if (dashboardSection) {
+        dashboardSection.appendChild(card);
+    }
+    
+    return card;
+}
+
+function showCognitiveLoadAlert(alertData) {
+    // Check if we can show this alert (max 2 per minute)
+    if (!canShowAlert()) {
+        console.log('Alert throttled: Too many alerts in the last minute');
+        return;
+    }
+    
+    // Create yellow popup alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'cognitive-alert-popup';
+    alertDiv.innerHTML = `
+        <div class="alert-content">
+            <div class="alert-header">
+                <i data-feather="alert-triangle"></i>
+                <h4>High Cognitive Load Detected</h4>
+                <div class="alert-counter" style="font-size: 0.8rem; color: #666; margin-left: auto;">
+                    Alert ${alertCount}/2 (per minute)
+                </div>
+                <button class="close-alert" onclick="this.parentElement.parentElement.remove()">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="alert-body">
+                <p>Current cognitive load: <strong>${alertData.load_value.toFixed(1)}%</strong></p>
+                <p>Consider taking a break or changing activities.</p>
+            </div>
+            <div class="alert-footer">
+                <button class="btn btn-primary" onclick="this.parentElement.parentElement.parentElement.remove()">
+                    Acknowledge
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    feather.replace();
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 10000);
+    
+    console.log(`Alert shown: ${alertCount}/2 alerts in current minute`);
+}
+
+function updateCognitiveStatus(status) {
+    console.log('Cognitive monitoring status:', status);
+}
+
+async function setCognitiveThreshold(threshold) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/cognitive-load/set-threshold`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ threshold: parseFloat(threshold) })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('Threshold set to:', threshold + '%');
+        } else {
+            console.error('Failed to set threshold:', data.message);
+        }
+    } catch (error) {
+        console.error('Error setting threshold:', error);
+    }
+}
+
+
+
+
+
+
+
+
 // Explanation Functions
 async function generateExplanation() {
     if (!currentPresentation) return;
@@ -2331,8 +2614,16 @@ function showSuccess(message) {
     successMessage.style.display = 'block';
 }
 
+
 function hideSuccess() {
     successMessage.style.display = 'none';
+}
+
+function refreshBackendStatus() {
+    checkBackendStatus();
+    if (cognitiveLoadSocket && cognitiveLoadSocket.readyState === WebSocket.OPEN) {
+        cognitiveLoadSocket.send(JSON.stringify({ type: 'status_request' }));
+    }
 }
 
 // Refresh icons when needed

@@ -709,3 +709,173 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-dark);
 }
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: var(--card-bg);
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.status-indicator:hover {
+    background: var(--card-bg-light);
+    transform: scale(1.02);
+}
+
+/* Add a loading state */
+.status-dot.loading {
+    background: var(--warning);
+    animation: pulse 1s infinite;
+}
+
+/* Cognitive Load Alert Popup */
+.cognitive-alert-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: var(--warning);
+    color: #000;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    animation: slideInRight 0.3s ease-out;
+    max-width: 350px;
+}
+
+.alert-content {
+    padding: 1.5rem;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.alert-header h4 {
+    margin: 0;
+    flex: 1;
+    color: #000;
+}
+
+.close-alert {
+    background: none;
+    border: none;
+    color: #000;
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.alert-body {
+    margin-bottom: 1rem;
+}
+
+.alert-body p {
+    margin: 0.5rem 0;
+    color: #000;
+}
+
+.alert-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Cognitive Load Stats */
+.cognitive-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.cognitive-stat {
+    text-align: center;
+    padding: 1rem;
+    background: var(--card-bg-light);
+    border-radius: 8px;
+}
+
+.cognitive-stat .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.cognitive-stat .stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Cognitive Controls */
+.cognitive-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.threshold-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.threshold-control label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.threshold-control input[type="range"] {
+    width: 100%;
+}
+
+.last-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-counter {
+    font-size: 0.8rem;
+    color: #666;
+    margin-left: auto;
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+}
+
+.cognitive-alert-popup .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.throttled-alert {
+    background: #ff9800 !important;
+}
+
+.throttled-alert .alert-header {
+    border-left: 4px solid #ff5722;
+}

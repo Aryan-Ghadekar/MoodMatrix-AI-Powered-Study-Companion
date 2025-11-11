@@ -1957,3 +1957,167 @@
 }
 
 
+
+/* Cognitive Load Monitoring Styles */
+.cognitive-alert-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ffeb3b;
+    color: #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10000;
+    max-width: 350px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.alert-content {
+    padding: 15px;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.alert-header h4 {
+    margin: 0 0 0 10px;
+    flex: 1;
+}
+
+.close-alert {
+    background: none;
+    border: none;
+    color: #333;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.alert-body {
+    margin-bottom: 15px;
+}
+
+.alert-footer {
+    text-align: right;
+}
+
+.btn-primary {
+    background: #4361ee;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Status Indicator */
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+}
+
+.status-dot.active {
+    background: var(--success);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Cognitive Load Card */
+.cognitive-load-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+}
+
+.cognitive-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.cognitive-stat {
+    text-align: center;
+    padding: 10px;
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.cognitive-info {
+    background: rgba(67, 97, 238, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin: 15px 0;
+}
+
+.last-alert {
+    background: rgba(255, 193, 7, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    border-left: 3px solid #ffc107;
+}
+
+.alert-counter {
+    font-size: 0.8rem;
+    color: #666;
+    margin-left: auto;
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+}
+
+.cognitive-alert-popup .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.throttled-alert {
+    background: #ff9800 !important;
+}
+
+.throttled-alert .alert-header {
+    border-left: 4px solid #ff5722;
+}

@@ -40,6 +40,10 @@ alpha2 = 1.2
 WINDOW_SIZE_BODY = 10
 SMOOTHING_ALPHA = 0.08
 
+# Add this global variable
+last_send_time = 0
+SEND_INTERVAL = 5  # Send every 5 seconds
+
 emotion_smoother = {k: deque(maxlen=5) for k in EMOTION_KEYS}
 prev_focus = 0.5
 prev_CL_emotion = 0.5
@@ -203,6 +207,41 @@ def estimate_body_cl(landmarks, history):
     final_score = np.mean(history["history"])
     return max(0, min(100, final_score)), reasons
 
+
+################################################################### 
+import requests
+import time
+import threading
+
+# Add this function to send data to FastAPI
+def send_cognitive_data_to_api(emotion_cl_avg, body_cl_avg, final_cl):
+    """Send cognitive load data to FastAPI backend"""
+    try:
+        data = {
+            "current_load": final_cl,
+            "emotion_load": emotion_cl_avg,
+            "body_load": body_cl_avg,
+            "status": "high" if final_cl > 50 else "low",
+            "timestamp": time.time()
+        }
+        
+        response = requests.post(
+            "http://localhost:8000/cognitive-load/update-data",
+            json=data,
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            print(f"[API] Data sent successfully: {final_cl:.1f}%")
+        else:
+            print(f"[API] Failed to send data: {response.status_code}")
+            
+    except Exception as e:
+        print(f"[API] Error sending data: {e}")
+
+
+###################################################################
+
 # ===========================================================
 # VIDEO LOOP
 # ===========================================================
@@ -325,9 +364,20 @@ while True:
         w_body = 0.5
 
     final_cl = (w_emotion * emotion_cl_avg) + (w_body * body_cl_avg)
-
-
     
+        # ----------------- SEND TO FASTAPI EVERY 5 SECONDS -----------------
+    current_time = time.time()
+    if current_time - last_send_time >= SEND_INTERVAL:
+        # Run in a separate thread to avoid blocking the video loop
+        threading.Thread(
+            target=send_cognitive_data_to_api,
+            args=(emotion_cl_avg, body_cl_avg, final_cl),
+            daemon=True
+        ).start()
+        last_send_time = current_time
+
+
+
 
 
     # ----------------- DISPLAY -----------------
