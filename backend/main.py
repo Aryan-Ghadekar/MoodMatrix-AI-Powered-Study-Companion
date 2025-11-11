@@ -11,10 +11,10 @@ from typing import List, Optional
 import uuid
 from pathlib import Path
 import logging
-from dyanamic_timetable import router
 import base64
 from io import BytesIO
 from gtts import gTTS
+from dyanamic_timetable import timetable_router
 
 
 # Set up logging
@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="SlideSense API")
-app.include_router(router)
+app.include_router(timetable_router)
 
 # CORS middleware
 app.add_middleware(

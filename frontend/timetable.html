@@ -1,310 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dyanamic Timetable</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="timetable.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MoodMatrix - Timetable Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="timetable.css">
 </head>
-
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="logo" onclick="showSection('hero')">
-                <i class="fas fa-brain logo-icon"></i>
-                MoodMatrix
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html" onclick="showSection('hero')">Home</a></li>
-                <li><a href="#" onclick="showSection('dashboard')">Dashboard</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#about">About</a></li>
-            </ul>
-            <div class="status-indicator">
-                <div class="status-dot"></div>
-                <span>Active</span>
-            </div>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-content">
+      <div class="logo" onclick="window.location.href='index.html'">
+        <i class="fas fa-brain logo-icon"></i>
+        MoodMatrix
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#dashboard">Dashboard</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>Active</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header">
+        <h1><span class="hero-title-gradient">Dynamic Timetable Generator</span></h1>
+        <p class="subtitle">Configure subjects and generate an optimized weekly timetable based on cognitive load data</p>
+      </div>
+
+      <!-- Subjects Configuration Card -->
+      <div class="config-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-list"></i>
+          </div>
+          <h2>Subjects & Difficulty (Editable)</h2>
         </div>
-    </nav>
-
-    <section class="hero" id="heroSection">
-        <div class="hero-content fade-in">
-            <!-- Add mode toggle button -->
-            <div class="mode-toggle-container">
-                <button id="modeToggleBtn" class="btn btn-toggle">
-                    <i class="fas fa-calendar"></i> Switch to Hourly Mode
-                </button>
-            </div>
-
-            <!-- Wrapped tables in a container for side-by-side layout -->
-            <div class="tables-container">
-                <!-- Cognitive Load Table -->
-                <div class="table-wrapper">
-                    <h2 class="table-title"><i class="fas fa-brain"></i> Cognitive Load Data (Editable)</h2>
-                    <div class="table-scroll">
-                        <table id="cognitiveTable" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Time Slot</th>
-                                    <th>Focus Level (0-1)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>09:00-10:00</td>
-                                    <td><input type="number" step="0.01" value="0.9"></td>
-                                </tr>
-                                <tr>
-                                    <td>10:00-11:00</td>
-                                    <td><input type="number" step="0.01" value="0.85"></td>
-                                </tr>
-                                <tr>
-                                    <td>11:00-12:00</td>
-                                    <td><input type="number" step="0.01" value="0.7"></td>
-                                </tr>
-                                <tr>
-                                    <td>14:00-15:00</td>
-                                    <td><input type="number" step="0.01" value="0.5"></td>
-                                </tr>
-                                <tr>
-                                    <td>18:00-19:00</td>
-                                    <td><input type="number" step="0.01" value="0.65"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Subjects Table -->
-                <div class="table-wrapper">
-                    <h2 class="table-title"><i class="fas fa-book"></i> Subjects & Difficulty (Editable)</h2>
-                    <div class="table-scroll">
-                        <table id="subjectsTable" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>Difficulty</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="text" value="Math"></td>
-                                    <td>
-                                        <select>
-                                            <option>Hard</option>
-                                            <option>Medium</option>
-                                            <option>Easy</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="text" value="Physics"></td>
-                                    <td>
-                                        <select>
-                                            <option>Hard</option>
-                                            <option selected>Medium</option>
-                                            <option>Easy</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="text" value="Chemistry"></td>
-                                    <td>
-                                        <select>
-                                            <option>Hard</option>
-                                            <option selected>Medium</option>
-                                            <option>Easy</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="text" value="English"></td>
-                                    <td>
-                                        <select>
-                                            <option>Hard</option>
-                                            <option>Medium</option>
-                                            <option selected>Easy</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="text" value="History"></td>
-                                    <td>
-                                        <select>
-                                            <option>Hard</option>
-                                            <option>Medium</option>
-                                            <option selected>Easy</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Buttons Container -->
-            <div class="buttons-container">
-                <button id="generateBtn" class="btn btn-primary">
-                    <i class="fas fa-wand-magic-sparkles"></i> Generate Timetable
-                </button>
-                <button id="editBtn" class="btn btn-secondary" style="display:none;">
-                    <i class="fas fa-pencil"></i> Edit Timetable
-                </button>
-            </div>
-
-            <!-- Generated Timetable Section -->
-            <div id="timetable-section" class="timetable-section">
-                <h2 class="section-title"><i class="fas fa-clock"></i> Generated Timetable</h2>
-                <div class="timetable-wrapper">
-                    <table id="timetableTable" class="timetable">
-                        <thead>
-                            <tr>
-                                <th>Time Slot</th>
-                                <th>Subject</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        
+        <div class="subjects-table-container">
+          <table class="subjects-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Weekly Count</th>
+                <th>Difficulty</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="subjectsTableBody">
+              <tr>
+                <td><input type="text" value="Math" class="subject-input" /></td>
+                <td><input type="number" value="5" min="1" max="10" class="count-input" /></td>
+                <td>
+                  <select class="difficulty-select">
+                    <option value="hard" selected>Hard</option>
+                    <option value="medium">Medium</option>
+                    <option value="easy">Easy</option>
+                  </select>
+                </td>
+                <td><button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td><input type="text" value="Physics" class="subject-input" /></td>
+                <td><input type="number" value="4" min="1" max="10" class="count-input" /></td>
+                <td>
+                  <select class="difficulty-select">
+                    <option value="hard" selected>Hard</option>
+                    <option value="medium">Medium</option>
+                    <option value="easy">Easy</option>
+                  </select>
+                </td>
+                <td><button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td><input type="text" value="Chemistry" class="subject-input" /></td>
+                <td><input type="number" value="3" min="1" max="10" class="count-input" /></td>
+                <td>
+                  <select class="difficulty-select">
+                    <option value="hard" selected>Hard</option>
+                    <option value="medium">Medium</option>
+                    <option value="easy">Easy</option>
+                  </select>
+                </td>
+                <td><button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td><input type="text" value="English" class="subject-input" /></td>
+                <td><input type="number" value="2" min="1" max="10" class="count-input" /></td>
+                <td>
+                  <select class="difficulty-select">
+                    <option value="hard">Hard</option>
+                    <option value="medium">Medium</option>
+                    <option value="easy" selected>Easy</option>
+                  </select>
+                </td>
+                <td><button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td><input type="text" value="History" class="subject-input" /></td>
+                <td><input type="number" value="1" min="1" max="10" class="count-input" /></td>
+                <td>
+                  <select class="difficulty-select">
+                    <option value="hard">Hard</option>
+                    <option value="medium">Medium</option>
+                    <option value="easy" selected>Easy</option>
+                  </select>
+                </td>
+                <td><button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-    </section>
 
-    <script>
-        let isHourlyMode = true;
+        <button class="btn btn-secondary" onclick="addSubjectRow()">
+          <i class="fas fa-plus"></i>
+          Add Subject
+        </button>
+      </div>
 
-        const generateBtn = document.getElementById("generateBtn");
-        const editBtn = document.getElementById("editBtn");
-        const modeToggleBtn = document.getElementById("modeToggleBtn");
+      <!-- Generate Button -->
+      <div class="action-container">
+        <button class="btn btn-primary btn-large" onclick="generateTimetable()">
+          <i class="fas fa-magic"></i>
+          Generate Timetable
+        </button>
+        <button class="btn btn-secondary btn-large" onclick="showSavedTimetables()">
+          <i class="fas fa-folder-open"></i>
+          View Saved Timetables
+        </button>
+      </div>
 
-        modeToggleBtn.addEventListener("click", () => {
-            isHourlyMode = !isHourlyMode;
-            updateCognitiveTable();
-            modeToggleBtn.textContent = isHourlyMode
-                ? '\ufaff Switch to Daily Mode'
-                : '\uf133 Switch to Hourly Mode';
+      <!-- Loading Indicator -->
+      <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generating optimized timetable...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div id="errorMessage" class="error-message" style="display: none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorText"></span>
+      </div>
+
+      <!-- Timetable Display Card -->
+      <div id="timetableCard" class="timetable-card" style="display: none;">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <h2>Generated Weekly Timetable</h2>
+          <button class="btn btn-primary" onclick="saveTimetable()" style="margin-left: auto; display: inline-flex;">
+            <i class="fas fa-save"></i>
+            Save Timetable
+          </button>
+        </div>
+        
+        <div class="timetable-container">
+          <table class="timetable" id="timetableDisplay">
+            <!-- Timetable will be generated here -->
+          </table>
+        </div>
+
+        <!-- Summary Section -->
+        <!-- <div class="summary-section" id="summarySection"> -->
+          <!-- Summary will be displayed here -->
+        <!-- </div> -->
+      </div>
+
+      <!-- Saved Timetables View -->
+      <div id="savedTimetablesCard" class="timetable-card" style="display: none;">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-archive"></i>
+          </div>
+          <h2>Saved Timetables</h2>
+          <button class="btn btn-secondary" onclick="closeSavedTimetables()" style="margin-left: auto;">
+            <i class="fas fa-times"></i>
+            Close
+          </button>
+        </div>
+        
+        <div id="savedTimetablesList">
+          <!-- Saved timetables will be displayed here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Save Timetable Modal -->
+  <div id="saveModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Save Timetable</h3>
+        <button class="close-modal" onclick="closeSaveModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label for="timetableName">Timetable Name:</label>
+        <input type="text" id="timetableName" class="modal-input" placeholder="e.g., Spring 2024 Schedule" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSaveModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmSaveTimetable()">
+          <i class="fas fa-save"></i>
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTimetableData = null;
+    let currentSubjects = null;
+
+    function deleteRow(btn) {
+      const row = btn.closest('tr');
+      const tbody = row.parentElement;
+      if (tbody.children.length > 1) {
+        row.remove();
+      } else {
+        alert('You must have at least one subject!');
+      }
+    }
+
+    function addSubjectRow() {
+      const tbody = document.getElementById('subjectsTableBody');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td><input type="text" value="New Subject" class="subject-input" /></td>
+        <td><input type="number" value="1" min="1" max="10" class="count-input" /></td>
+        <td>
+          <select class="difficulty-select">
+            <option value="hard">Hard</option>
+            <option value="medium" selected>Medium</option>
+            <option value="easy">Easy</option>
+          </select>
+        </td>
+        <td><button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>
+      `;
+      tbody.appendChild(newRow);
+    }
+
+    function collectSubjectsFromTable() {
+      const rows = document.querySelectorAll('#subjectsTableBody tr');
+      const subjects = [];
+      
+      rows.forEach(row => {
+        const nameInput = row.querySelector('.subject-input');
+        const countInput = row.querySelector('.count-input');
+        const difficultySelect = row.querySelector('.difficulty-select');
+        
+        const name = nameInput.value.trim();
+        const count = parseInt(countInput.value);
+        const difficulty = difficultySelect.value;
+        
+        if (name && count > 0) {
+          subjects.push({
+            name: name,
+            count: count,
+            difficulty: difficulty
+          });
+        }
+      });
+      
+      return subjects;
+    }
+
+    async function generateTimetable() {
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const errorMessage = document.getElementById('errorMessage');
+      const timetableCard = document.getElementById('timetableCard');
+      const savedTimetablesCard = document.getElementById('savedTimetablesCard');
+
+      // Collect subjects from the table
+      const subjects = collectSubjectsFromTable();
+      
+      if (subjects.length === 0) {
+        alert('Please add at least one subject!');
+        return;
+      }
+
+      // Hide previous results
+      timetableCard.style.display = 'none';
+      savedTimetablesCard.style.display = 'none';
+      errorMessage.style.display = 'none';
+      loadingIndicator.style.display = 'flex';
+
+      try {
+        const response = await fetch('http://localhost:8000/timetable/generate-timetable-custom', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ subjects: subjects })
         });
-
-        function updateCognitiveTable() {
-            const tbody = document.querySelector("#cognitiveTable tbody");
-            tbody.innerHTML = "";
-
-            if (isHourlyMode) {
-                // Hourly mode: time slots
-                const slots = [
-                    { time: "09:00-10:00", value: 0.9 },
-                    { time: "10:00-11:00", value: 0.85 },
-                    { time: "11:00-12:00", value: 0.7 },
-                    { time: "14:00-15:00", value: 0.5 },
-                    { time: "18:00-19:00", value: 0.65 }
-                ];
-                slots.forEach(slot => {
-                    const row = tbody.insertRow();
-                    row.insertCell(0).textContent = slot.time;
-                    const input = document.createElement("input");
-                    input.type = "number";
-                    input.step = "0.01";
-                    input.value = slot.value;
-                    row.insertCell(1).appendChild(input);
-                });
-            } else {
-                // Daily mode: days of week
-                const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-                const values = [0.9, 0.6, 0.7, 0.5, 0.8, 0.4, 0.3];
-                days.forEach((day, i) => {
-                    const row = tbody.insertRow();
-                    row.insertCell(0).textContent = day;
-                    const input = document.createElement("input");
-                    input.type = "number";
-                    input.step = "0.01";
-                    input.value = values[i];
-                    row.insertCell(1).appendChild(input);
-                });
-            }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        generateBtn.addEventListener("click", async () => {
-            let cognitiveData = {};
+        const data = await response.json();
+        currentTimetableData = data.timetable;
+        currentSubjects = subjects;
+        
+        displayTimetable(data);
+        
+        loadingIndicator.style.display = 'none';
+        timetableCard.style.display = 'block';
+        
+        // Smooth scroll to timetable
+        setTimeout(() => {
+          timetableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
 
-            if (isHourlyMode) {
-                // Hourly mode: use time slots as keys
-                document.querySelectorAll("#cognitiveTable tbody tr").forEach((row) => {
-                    const time = row.cells[0].textContent.trim();
-                    const value = parseFloat(row.cells[1].querySelector("input").value);
-                    cognitiveData[time] = value;
-                });
-            } else {
-                // Daily mode: use day names as keys
-                document.querySelectorAll("#cognitiveTable tbody tr").forEach((row) => {
-                    const day = row.cells[0].textContent.trim();
-                    const value = parseFloat(row.cells[1].querySelector("input").value);
-                    cognitiveData[day] = value;
-                });
-            }
+      } catch (error) {
+        loadingIndicator.style.display = 'none';
+        errorMessage.style.display = 'flex';
+        document.getElementById('errorText').textContent = `Error: ${error.message}. Make sure the backend server is running on http://localhost:8000`;
+      }
+    }
 
-            // Collect subject data with difficulty
-            const subjects = {};
-            document.querySelectorAll("#subjectsTable tbody tr").forEach((row) => {
-                const name = row.cells[0].querySelector("input").value.trim();
-                const difficulty = row.cells[1].querySelector("select").value;
-                // Convert difficulty to numeric weight
-                const weight = difficulty === "Hard" ? 5 : difficulty === "Medium" ? 3 : 1;
-                subjects[name] = weight;
-            });
+    function displayTimetable(data) {
+      const timetable = data.timetable;
+    //   const summary = data.summary;
+      const tableElement = document.getElementById('timetableDisplay');
+      
+      // Get all unique time slots from all days
+      const days = Object.keys(timetable);
+      let allTimeSlots = new Set();
+      
+      days.forEach(day => {
+        Object.keys(timetable[day]).forEach(slot => allTimeSlots.add(slot));
+      });
+      
+      // Sort time slots in ascending order
+      const timeSlots = Array.from(allTimeSlots).sort((a, b) => {
+        const parseTime = (timeSlot) => {
+          const startTime = timeSlot.split('-')[0].trim();
+          const [hours, minutes] = startTime.split(':').map(Number);
+          return hours * 60 + minutes;
+        };
+        return parseTime(a) - parseTime(b);
+      });
+      
+      // Build table HTML
+      let html = '<thead><tr><th class="day-header">Day / Time</th>';
+      timeSlots.forEach(slot => {
+        html += `<th class="time-header">${slot}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+      
+      // Add rows for each day
+      days.forEach(day => {
+        html += `<tr><td class="day-cell">${day}</td>`;
+        timeSlots.forEach(slot => {
+          const subject = timetable[day][slot] || 'Free';
+          const cellClass = subject === 'Self/Revision' ? 'revision-cell' : 'subject-cell';
+          html += `<td class="${cellClass}">${subject}</td>`;
+        });
+        html += '</tr>';
+      });
+      
+      html += '</tbody>';
+      tableElement.innerHTML = html;
+      
+      // Display summary
+    //   displaySummary(summary);
+    }
 
-            try {
-                const response = await fetch("http://127.0.0.1:8000/timetable/generate_timetable", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ cognitive_data: cognitiveData, subjects }),
-                });
+    function displaySummary(summary) {
+      const summarySection = document.getElementById('summarySection');
+      
+      let html = '<h3><i class="fas fa-chart-pie"></i> Summary</h3>';
+      html += '<div class="summary-grid">';
+      
+      html += `
+        <div class="summary-item">
+          <div class="summary-label">Total Slots</div>
+          <div class="summary-value">${summary.total_slots}</div>
+        </div>
+      `;
+      
+      // Display subjects assigned
+      html += '<div class="summary-item full-width">';
+      html += '<div class="summary-label">Subjects Distribution</div>';
+      html += '<div class="subjects-list">';
+      for (const [subject, count] of Object.entries(summary.subjects_assigned)) {
+        html += `<span class="subject-badge">${subject}: ${count}x per week</span>`;
+      }
+      html += '</div></div>';
+      
+      // Display remaining subjects if any
+      if (Object.keys(summary.remaining_subjects).length > 0) {
+        html += '<div class="summary-item full-width remaining">';
+        html += '<div class="summary-label"><i class="fas fa-info-circle"></i> Remaining Slots</div>';
+        html += '<div class="subjects-list">';
+        for (const [subject, count] of Object.entries(summary.remaining_subjects)) {
+          html += `<span class="subject-badge remaining">${subject}: ${count} slot(s) remaining</span>`;
+        }
+        html += '</div></div>';
+      }
+      
+      // Display subjects per day breakdown
+      if (summary.subjects_per_day) {
+        html += '<div class="summary-item full-width">';
+        html += '<div class="summary-label">Daily Subject Distribution</div>';
+        html += '<div class="daily-breakdown">';
+        for (const [day, subjects] of Object.entries(summary.subjects_per_day)) {
+          html += `<div class="day-subjects"><strong>${day}:</strong> ${subjects.join(', ')}</div>`;
+        }
+        html += '</div></div>';
+      }
+      
+      html += '</div>';
+      summarySection.innerHTML = html;
+    }
 
-                // const data = await response.json();
-                // displayTimetable(data.timetable);
-                const data = await response.json();
-                displayTimetable(data.weekly_timetable);
+    function saveTimetable() {
+      if (!currentTimetableData) {
+        alert('No timetable to save!');
+        return;
+      }
+      document.getElementById('saveModal').style.display = 'flex';
+      document.getElementById('timetableName').value = '';
+      document.getElementById('timetableName').focus();
+    }
 
-            } catch (error) {
-                alert("Error generating timetable: " + error.message);
-            }
+    function closeSaveModal() {
+      document.getElementById('saveModal').style.display = 'none';
+    }
+
+    async function confirmSaveTimetable() {
+      const name = document.getElementById('timetableName').value.trim();
+      
+      if (!name) {
+        alert('Please enter a name for the timetable!');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/timetable/save-timetable', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: name,
+            timetable: currentTimetableData,
+            subjects: currentSubjects,
+            created_at: new Date().toISOString()
+          })
         });
 
-        function displayTimetable(timetable) {
-            const tbody = document.querySelector("#timetableTable tbody");
-            tbody.innerHTML = "";
-
-            for (const [slot, subjects] of Object.entries(timetable)) {
-                const row = tbody.insertRow();
-                const cell1 = row.insertCell(0);
-                const cell2 = row.insertCell(1);
-
-                cell1.textContent = slot;
-
-                // Handle subjects as array (multiple subjects per slot) or string
-                const subjectText = Array.isArray(subjects) ? subjects.join(", ") : subjects;
-                cell2.innerHTML = `<input type="text" value="${subjectText}" disabled>`;
-            }
-
-            document.getElementById("timetable-section").style.display = "block";
-            editBtn.style.display = "inline-flex";
-            editBtn.scrollIntoView({ behavior: "smooth" });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        editBtn.addEventListener("click", () => {
-            const inputs = document.querySelectorAll("#timetableTable input");
-            const editable = inputs[0].disabled; // toggle state
-            inputs.forEach(inp => inp.disabled = !editable);
-            editBtn.innerHTML = editable ? '<i class="fas fa-floppy-disk"></i> Save Timetable' : '<i class="fas fa-pencil"></i> Edit Timetable';
+        const result = await response.json();
+        
+        closeSaveModal();
+        alert('Timetable saved successfully!');
+        
+      } catch (error) {
+        alert(`Error saving timetable: ${error.message}`);
+      }
+    }
+
+    async function showSavedTimetables() {
+      const timetableCard = document.getElementById('timetableCard');
+      const savedTimetablesCard = document.getElementById('savedTimetablesCard');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      
+      timetableCard.style.display = 'none';
+      loadingIndicator.style.display = 'flex';
+
+      try {
+        const response = await fetch('http://localhost:8000/timetable/saved-timetables');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        loadingIndicator.style.display = 'none';
+        displaySavedTimetables(data.timetables || []);
+        savedTimetablesCard.style.display = 'block';
+        
+        setTimeout(() => {
+          savedTimetablesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
+      } catch (error) {
+        loadingIndicator.style.display = 'none';
+        alert(`Error loading saved timetables: ${error.message}`);
+      }
+    }
+
+    function displaySavedTimetables(timetables) {
+      const container = document.getElementById('savedTimetablesList');
+      
+      if (timetables.length === 0) {
+        container.innerHTML = '<div class="no-timetables"><i class="fas fa-inbox"></i><p>No saved timetables yet</p></div>';
+        return;
+      }
+
+      let html = '<div class="saved-timetables-grid">';
+      
+      timetables.reverse().forEach(tt => {
+        const date = new Date(tt.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
         });
-    </script>
+        
+        html += `
+          <div class="saved-timetable-item">
+            <div class="saved-timetable-header">
+              <h4>${tt.name}</h4>
+              <button class="delete-saved-btn" onclick="deleteSavedTimetable(${tt.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            <div class="saved-timetable-meta">
+              <span><i class="fas fa-calendar"></i> ${date}</span>
+              <span><i class="fas fa-book"></i> ${tt.subjects.length} subjects</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="viewSavedTimetable(${tt.id})">
+              <i class="fas fa-eye"></i>
+              View Timetable
+            </button>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    async function viewSavedTimetable(id) {
+      try {
+        const response = await fetch('http://localhost:8000/timetable/saved-timetables');
+        const data = await response.json();
+        
+        const timetable = data.timetables.find(tt => tt.id === id);
+        
+        if (timetable) {
+          currentTimetableData = timetable.timetable;
+          currentSubjects = timetable.subjects;
+          
+          displayTimetable({
+            timetable: timetable.timetable,
+            summary: {
+              total_slots: Object.values(timetable.timetable).reduce((sum, day) => sum + Object.keys(day).length, 0),
+              subjects_assigned: timetable.subjects.reduce((acc, s) => {
+                acc[s.name] = s.count;
+                return acc;
+              }, {}),
+              remaining_subjects: {},
+              subjects_per_day: Object.entries(timetable.timetable).reduce((acc, [day, slots]) => {
+                acc[day] = [...new Set(Object.values(slots).filter(s => s !== 'Self/Revision'))];
+                return acc;
+              }, {})
+            }
+          });
+          
+          document.getElementById('savedTimetablesCard').style.display = 'none';
+          document.getElementById('timetableCard').style.display = 'block';
+          
+          setTimeout(() => {
+            document.getElementById('timetableCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+        
+      } catch (error) {
+        alert(`Error loading timetable: ${error.message}`);
+      }
+    }
+
+    async function deleteSavedTimetable(id) {
+      if (!confirm('Are you sure you want to delete this timetable?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8000/timetable/saved-timetables/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Refresh the list
+        showSavedTimetables();
+        
+      } catch (error) {
+        alert(`Error deleting timetable: ${error.message}`);
+      }
+    }
+
+    function closeSavedTimetables() {
+      document.getElementById('savedTimetablesCard').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('saveModal');
+      if (event.target === modal) {
+        closeSaveModal();
+      }
+    }
+  </script>
 </body>
-
 </html>
