@@ -1,0 +1,147 @@
+{
+  "timetables": [
+    {
+      "id": 1,
+      "name": "Jan",
+      "timetable": {
+        "Mon": {
+          "09:00-10:00": "Math",
+          "10:00-11:00": "English",
+          "11:00-12:00": "History",
+          "14:00-15:00": "Physics",
+          "15:00-16:00": "Chemistry"
+        },
+        "Tue": {
+          "09:00-10:00": "English",
+          "10:00-11:00": "Math",
+          "11:00-12:00": "Physics",
+          "14:00-15:00": "Chemistry",
+          "15:00-16:00": "DSA"
+        },
+        "Wed": {
+          "09:00-10:00": "Math",
+          "10:00-11:00": "Physics",
+          "11:00-12:00": "Chemistry",
+          "14:00-15:00": "DSA",
+          "15:00-16:00": "Self/Revision"
+        },
+        "Thu": {
+          "09:00-10:00": "Math",
+          "10:00-11:00": "Physics",
+          "11:00-12:00": "DSA",
+          "14:00-15:00": "Self/Revision",
+          "15:00-16:00": "Self/Revision"
+        },
+        "Fri": {
+          "09:00-10:00": "Math",
+          "10:00-11:00": "Self/Revision",
+          "11:00-12:00": "Self/Revision",
+          "14:00-15:00": "Self/Revision",
+          "15:00-16:00": "Self/Revision"
+        }
+      },
+      "subjects": [
+        {
+          "name": "Math",
+          "count": 5,
+          "difficulty": "hard"
+        },
+        {
+          "name": "Physics",
+          "count": 4,
+          "difficulty": "hard"
+        },
+        {
+          "name": "Chemistry",
+          "count": 3,
+          "difficulty": "hard"
+        },
+        {
+          "name": "English",
+          "count": 2,
+          "difficulty": "easy"
+        },
+        {
+          "name": "History",
+          "count": 1,
+          "difficulty": "easy"
+        },
+        {
+          "name": "DSA",
+          "count": 3,
+          "difficulty": "hard"
+        }
+      ],
+      "created_at": "2025-11-13T09:19:50.130Z"
+    },
+    {
+      "id": 2,
+      "name": "Feb",
+      "timetable": {
+        "Mon": {
+          "09:00-10:00": "Physics",
+          "10:00-11:00": "English",
+          "11:00-12:00": "History",
+          "14:00-15:00": "Chemistry",
+          "15:00-16:00": "Dsa"
+        },
+        "Tue": {
+          "09:00-10:00": "English",
+          "10:00-11:00": "Physics",
+          "11:00-12:00": "Chemistry",
+          "14:00-15:00": "Dsa",
+          "15:00-16:00": "Self/Revision"
+        },
+        "Wed": {
+          "09:00-10:00": "English",
+          "10:00-11:00": "Physics",
+          "11:00-12:00": "Chemistry",
+          "14:00-15:00": "Dsa",
+          "15:00-16:00": "Self/Revision"
+        },
+        "Thu": {
+          "09:00-10:00": "Physics",
+          "10:00-11:00": "History",
+          "11:00-12:00": "Self/Revision",
+          "14:00-15:00": "Self/Revision",
+          "15:00-16:00": "Self/Revision"
+        },
+        "Fri": {
+          "09:00-10:00": "History",
+          "10:00-11:00": "Self/Revision",
+          "11:00-12:00": "Self/Revision",
+          "14:00-15:00": "Self/Revision",
+          "15:00-16:00": "Self/Revision"
+        }
+      },
+      "subjects": [
+        {
+          "name": "Physics",
+          "count": 4,
+          "difficulty": "hard"
+        },
+        {
+          "name": "Chemistry",
+          "count": 3,
+          "difficulty": "hard"
+        },
+        {
+          "name": "English",
+          "count": 3,
+          "difficulty": "easy"
+        },
+        {
+          "name": "History",
+          "count": 4,
+          "difficulty": "easy"
+        },
+        {
+          "name": "Dsa",
+          "count": 3,
+          "difficulty": "hard"
+        }
+      ],
+      "created_at": "2025-11-13T09:41:26.486Z"
+    }
+  ]
+}

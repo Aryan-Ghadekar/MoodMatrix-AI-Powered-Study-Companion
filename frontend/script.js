@@ -4,7 +4,6 @@ let statusCheckInterval;
 // Cognitive Load Alert Throttling
 let lastAlertTime = 0;
 let alertCount = 0;
-let alertResetTimer = null;
 
 function canShowAlert() {
     const now = Date.now();
@@ -25,11 +24,6 @@ function canShowAlert() {
     return false;
 }
 
-function resetAlertCounter() {
-    alertCount = 0;
-    lastAlertTime = Date.now();
-}
-
 // Function to check backend status
 async function checkBackendStatus() {
     try {
@@ -38,7 +32,6 @@ async function checkBackendStatus() {
             headers: {
                 'Accept': 'application/json',
             },
-            // Add timeout for the request
             signal: AbortSignal.timeout(7000)
         });
         
@@ -56,7 +49,7 @@ async function checkBackendStatus() {
 
 // Function to update the status indicator
 function updateBackendStatus(status) {
-    if (backendStatus === status) return; // No change needed
+    if (backendStatus === status) return;
     
     backendStatus = status;
     const statusDot = document.querySelector('.status-dot');
@@ -83,16 +76,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Also check when user focuses on the page
     document.addEventListener('visibilitychange', function() {
+        console.log('Page visibility changed:', document.visibilityState);
         if (!document.hidden) {
             checkBackendStatus();
         }
     });
 });
-
-// Function to manually check status (can be called from console or buttons)
-function refreshBackendStatus() {
-    checkBackendStatus();
-}
 
 // Add timeout support for older browsers
 if (!AbortSignal.timeout) {
@@ -103,172 +92,211 @@ if (!AbortSignal.timeout) {
     };
 }
 
+// ===========================================================
+// SIMPLIFIED COGNITIVE LOAD MONITORING WITH HEADER ALERT
+// ===========================================================
+let cognitivePollingInterval = null;
+let lastCognitiveStatus = null;
+let headerAlertVisible = false;
 
+function initSimpleCognitiveMonitoring() {
+    if (cognitivePollingInterval) {
+        clearInterval(cognitivePollingInterval);
+    }
+    
+    // Create header alert element if it doesn't exist
+    createHeaderAlertElement();
+    
+    // Fetch initial data
+    fetchSimpleCognitiveStatus();
+    
+    // Set up polling every 5 seconds
+    cognitivePollingInterval = setInterval(fetchSimpleCognitiveStatus, 5000);
+    
+    console.log('Simple cognitive monitoring started');
+}
 
-
-
-
-
-
-
-// Cognitive Load Monitoring
-let cognitiveLoadSocket = null;
-let isCognitiveMonitoring = false;
-
-// Initialize cognitive load monitoring
-function initCognitiveLoadMonitoring() {
+async function fetchSimpleCognitiveStatus() {
     try {
-        cognitiveLoadSocket = new WebSocket('ws://localhost:8000/cognitive-load/ws');
+        const response = await fetch('http://localhost:8000/cognitive-load/simple-status', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            cache: 'no-store'
+        });
         
-        cognitiveLoadSocket.onopen = function(event) {
-            console.log('Cognitive load WebSocket connected');
-            updateCognitiveStatus('Connected');
-        };
-        
-        cognitiveLoadSocket.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                
-                if (data.type === 'status_update') {
-                    updateCognitiveDisplay(data.data);
-                } else if (data.type === 'cognitive_load_alert') {
-                    // Apply throttling to alerts
-                    showCognitiveLoadAlert(data);
-                }
-            } catch (e) {
-                console.error('Error parsing WebSocket message:', e);
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                updateSimpleCognitiveDisplay(result);
+                updateHeaderAlert(result);
+                lastCognitiveStatus = result;
             }
-        };
-        
-        cognitiveLoadSocket.onclose = function(event) {
-            console.log('Cognitive load WebSocket disconnected');
-            updateCognitiveStatus('Disconnected');
-            // Attempt to reconnect after 5 seconds
-            setTimeout(initCognitiveLoadMonitoring, 5000);
-        };
-        
-        cognitiveLoadSocket.onerror = function(error) {
-            console.error('Cognitive load WebSocket error:', error);
-            updateCognitiveStatus('Error');
-        };
+        }
     } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
-        updateCognitiveStatus('Failed');
+        console.error('Error fetching cognitive status:', error);
+        hideHeaderAlert();
     }
 }
 
-// Update cognitive load display
-// Update cognitive load display for external monitoring
-function updateCognitiveDisplay(data) {
-    const cognitiveCard = document.getElementById('cognitive-load-card') || createCognitiveLoadCard();
-    
-    cognitiveCard.innerHTML = `
-        <div class="card-header">
-            <div class="card-icon">
-                <i class="fas fa-brain"></i>
-            </div>
-            <h3>Cognitive Load Monitor</h3>
-            <div class="status-indicator" style="margin-left: auto;">
-                <div class="status-dot" style="background: var(--success)"></div>
-                <span>External Monitoring</span>
-            </div>
-        </div>
-        
-        <div class="cognitive-stats">
-            <div class="cognitive-stat">
-                <div class="stat-value" style="color: ${data.current_load > 50 ? 'var(--warning)' : 'var(--success)'}">
-                    ${data.current_load.toFixed(1)}%
-                </div>
-                <div class="stat-label">Overall Load</div>
-            </div>
-            <div class="cognitive-stat">
-                <div class="stat-value">${data.emotion_load.toFixed(1)}%</div>
-                <div class="stat-label">Emotion</div>
-            </div>
-            <div class="cognitive-stat">
-                <div class="stat-value">${data.body_load.toFixed(1)}%</div>
-                <div class="stat-label">Body Posture</div>
-            </div>
-        </div>
-        
-        <div class="cognitive-info">
-            <p><i class="fas fa-info-circle"></i> Data from external cognitive_load_fusion.py</p>
-            <p><i class="fas fa-sync-alt"></i> Updates every 5 seconds</p>
-        </div>
-        
-        ${data.last_alert ? `
-            <div class="last-alert">
-                <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
-                Last alert: ${new Date(data.last_alert * 1000).toLocaleTimeString()}
-            </div>
-        ` : ''}
-    `;
-}
-
-// Create cognitive load card in dashboard
-function createCognitiveLoadCard() {
-    const card = document.createElement('div');
-    card.className = 'dashboard-card';
-    card.id = 'cognitive-load-card';
-    
-    const dashboardGrid = document.querySelector('.dashboard-grid');
-    if (dashboardGrid) {
-        dashboardGrid.appendChild(card);
-    }
-    
-    return card;
-}
-
-// Show cognitive load alert
-function showCognitiveLoadAlert(alertData) {
-    // Check if we can show this alert (max 2 per minute)
-    if (!canShowAlert()) {
-        console.log('Alert throttled: Too many alerts in the last minute');
+function createHeaderAlertElement() {
+    if (document.getElementById('cognitive-header-alert')) {
         return;
     }
     
-    // Create yellow popup alert
     const alertDiv = document.createElement('div');
-    alertDiv.className = 'cognitive-alert-popup';
+    alertDiv.id = 'cognitive-header-alert';
+    alertDiv.className = 'header-alert';
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideDown 0.3s ease-out;
+        backdrop-filter: blur(10px);
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulseAlert {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        
+        .header-alert.high {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 152, 0, 0.95));
+            color: #333;
+            border: 2px solid #ff9800;
+            animation: pulseAlert 2s infinite, slideDown 0.3s ease-out;
+        }
+        
+        .header-alert.normal {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.95), rgba(32, 201, 151, 0.95));
+            color: white;
+            border: 2px solid #20c997;
+        }
+    `;
+    document.head.appendChild(style);
+    
     alertDiv.innerHTML = `
-        <div class="alert-content">
-            <div class="alert-header">
-                <i data-feather="alert-triangle"></i>
-                <h4>High Cognitive Load Detected</h4>
-                <div class="alert-counter" style="font-size: 0.8rem; color: #666; margin-left: auto;">
-                    Alert ${alertCount}/2 (per minute)
-                </div>
-                <button class="close-alert" onclick="this.parentElement.parentElement.remove()">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="alert-body">
-                <p>Current cognitive load: <strong>${alertData.load_value.toFixed(1)}%</strong></p>
-                <p>Consider taking a break or changing activities.</p>
-            </div>
-            <div class="alert-footer">
-                <button class="btn btn-primary" onclick="this.parentElement.parentElement.parentElement.remove()">
-                    Acknowledge
-                </button>
-            </div>
-        </div>
+        <i data-feather="alert-triangle" style="width: 20px; height: 20px;"></i>
+        <span id="alert-message">Cognitive Load: Normal</span>
+        <button onclick="hideHeaderAlert()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: auto;">
+            <i data-feather="x" style="width: 18px; height: 18px;"></i>
+        </button>
     `;
     
     document.body.appendChild(alertDiv);
-    feather.replace();
-    
-    // Auto-remove after 10 seconds
-    setTimeout(() => {
-        if (alertDiv.parentElement) {
-            alertDiv.remove();
-        }
-    }, 10000);
-    
-    console.log(`Alert shown: ${alertCount}/2 alerts in current minute`);
 }
 
+function updateHeaderAlert(data) {
+    const alertDiv = document.getElementById('cognitive-header-alert');
+    if (!alertDiv) return;
+    
+    const isHigh = data.status === 'high';
+    const loadValue = data.load.toFixed(1);
+    
+    if (isHigh) {
+        alertDiv.className = 'header-alert high';
+        alertDiv.querySelector('#alert-message').textContent = 
+            `⚠️ High Cognitive Load: ${loadValue}% - Consider taking a break`;
+        alertDiv.style.display = 'flex';
+        headerAlertVisible = true;
+        
+        // playAlertSound();
+    } else {
+        if (headerAlertVisible || (lastCognitiveStatus && lastCognitiveStatus.status === 'high')) {
+            alertDiv.className = 'header-alert normal';
+            alertDiv.querySelector('#alert-message').textContent = 
+                `✓ Cognitive Load Normal: ${loadValue}%`;
+            alertDiv.style.display = 'flex';
+            headerAlertVisible = true;
+            
+            setTimeout(hideHeaderAlert, 3000);
+        } else {
+            hideHeaderAlert();
+        }
+    }
+    
+    
+}
 
+function hideHeaderAlert() {
+    const alertDiv = document.getElementById('cognitive-header-alert');
+    if (alertDiv) {
+        alertDiv.style.display = 'none';
+        headerAlertVisible = false;
+    }
+}
 
+// function playAlertSound() {
+//     try {
+//         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+//         const oscillator = audioContext.createOscillator();
+//         const gainNode = audioContext.createGain();
+        
+//         oscillator.connect(gainNode);
+//         gainNode.connect(audioContext.destination);
+        
+//         oscillator.frequency.value = 800;
+//         oscillator.type = 'sine';
+        
+//         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+//         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+//         oscillator.start(audioContext.currentTime);
+//         oscillator.stop(audioContext.currentTime + 0.5);
+//     } catch (e) {
+//         console.log('Audio context not supported:', e);
+//     }
+// }
+
+function updateSimpleCognitiveDisplay(data) {
+    const card = document.getElementById('cognitive-load-card');
+    if (card) {
+        const statValues = card.querySelectorAll('.stat-value');
+        if (statValues.length >= 1) {
+            statValues[0].textContent = `${data.load.toFixed(1)}%`;
+            statValues[0].style.color = data.status === 'high' ? 'var(--warning)' : 'var(--success)';
+        }
+        
+        const statusSpan = card.querySelector('.status-indicator span');
+        if (statusSpan) {
+            statusSpan.textContent = data.status === 'high' ? 'High Load' : 'Normal Load';
+            statusSpan.style.color = data.status === 'high' ? 'var(--warning)' : 'var(--success)';
+        }
+        
+        const lastAlertDiv = card.querySelector('.last-alert');
+        if (data.last_alert) {
+            if (!lastAlertDiv) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'last-alert';
+                alertDiv.innerHTML = `<i data-feather="alert-triangle"></i> Last alert: ${new Date(data.last_alert * 1000).toLocaleTimeString()}`;
+                card.appendChild(alertDiv);
+            } else {
+                lastAlertDiv.innerHTML = `<i data-feather="alert-triangle"></i> Last alert: ${new Date(data.last_alert * 1000).toLocaleTimeString()}`;
+            }
+        } else if (lastAlertDiv) {
+            lastAlertDiv.remove();
+        }
+       
+    }
+}
+
+// Threshold setting (keep this)
 async function setCognitiveThreshold(threshold) {
     try {
         const response = await fetch('http://localhost:8000/cognitive-load/set-threshold', {
@@ -290,24 +318,33 @@ async function setCognitiveThreshold(threshold) {
     }
 }
 
-function updateCognitiveStatus(status) {
-    const statusElement = document.getElementById('cognitive-status');
-    if (statusElement) {
-        statusElement.textContent = status;
-    }
-}
-
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    initCognitiveLoadMonitoring();
+    console.log('Page loaded at:', new Date().toLocaleTimeString());
+    initSimpleCognitiveMonitoring();
+    checkBackendStatus();
+    statusCheckInterval = setInterval(checkBackendStatus, 10000);
+    
+    // Existing timer display
+    updateTimerDisplay();
 });
 
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    console.log('Page unloading at:', new Date().toLocaleTimeString());
+    if (cognitivePollingInterval) {
+        clearInterval(cognitivePollingInterval);
+        cognitivePollingInterval = null;
+    }
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+    }
+});
 
-
-
-
-
-
+// ===========================================================
+// EXISTING DASHBOARD FUNCTIONS (KEEP THESE)
+// ===========================================================
 
 // Section navigation
 function showSection(sectionId) {
@@ -356,13 +393,11 @@ function updateTimer() {
         timerSeconds--;
         updateTimerDisplay();
 
-        // Update progress ring
         const totalSeconds = 25 * 60;
         const offset = 565 - (565 * (totalSeconds - timerSeconds) / totalSeconds);
         document.querySelector('.progress-ring-fill').style.strokeDashoffset = offset;
     } else {
         resetTimer();
-        // Notification would go here
     }
 }
 
@@ -387,7 +422,6 @@ function connectHardware() {
 function initCharts() {
     const ctx = document.getElementById('chartCanvas').getContext('2d');
 
-    // Simple chart data
     const data = {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [{
@@ -432,8 +466,3 @@ function initCharts() {
 
     new Chart(ctx, config);
 }
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', function () {
-    updateTimerDisplay();
-});
