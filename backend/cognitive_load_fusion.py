@@ -10,12 +10,15 @@ import json
 import joblib
 import os
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-
+import json
+from datetime import datetime
 # ===========================================================
 # CONFIGURATION
 # ===========================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
+
+
 
 # Load emotion weights
 with open(os.path.join(BASE_DIR, "emotion_importance.json"), "r") as f:
@@ -62,6 +65,30 @@ R = np.array([[1e-2]])
 
 x_emotion = np.array([[0.0], [0.0]])
 P_emotion = np.eye(2)
+
+
+# Add near other global variables
+cognitive_data = []
+DATA_FILE = "cognitive_load_data.json"
+
+def save_cognitive_data(timestamp, emotion_cl, body_cl, final_cl):
+    """Save cognitive load data to JSON file"""
+    data_entry = {
+        "timestamp": timestamp,
+        "emotion_cognitive_load": round(emotion_cl, 2),
+        "body_cognitive_load": round(body_cl, 2),
+        "final_cognitive_load": round(final_cl, 2),
+        "status": "high" if final_cl > 50 else "low"
+    }
+    
+    cognitive_data.append(data_entry)
+    
+    # Save to file
+    try:
+        with open(DATA_FILE, 'w') as f:
+            json.dump(cognitive_data, f, indent=2)
+    except Exception as e:
+        print(f"[ERROR] Failed to save data: {e}")
 
 def kalman_update_emotion(measurement):
     global x_emotion, P_emotion
@@ -207,37 +234,44 @@ def estimate_body_cl(landmarks, history):
     final_score = np.mean(history["history"])
     return max(0, min(100, final_score)), reasons
 
+# ===========================================================
+# ADD HTTP REQUEST FUNCTION
+# ===========================================================
 
-################################################################### 
 import requests
 import time
-import threading
-
-# Add this function to send data to FastAPI
-def send_cognitive_data_to_api(emotion_cl_avg, body_cl_avg, final_cl):
-    """Send cognitive load data to FastAPI backend"""
+def send_cognitive_data_via_http(emotion_cl_avg, body_cl_avg, final_cl):
+    """Send cognitive load data via HTTP POST request"""
     try:
         data = {
-            "current_load": final_cl,
-            "emotion_load": emotion_cl_avg,
-            "body_load": body_cl_avg,
+            "current_load": float(final_cl),
+            "emotion_load": float(emotion_cl_avg),
+            "body_load": float(body_cl_avg),
             "status": "high" if final_cl > 50 else "low",
             "timestamp": time.time()
         }
         
+        # Send POST request to FastAPI endpoint
         response = requests.post(
-            "http://localhost:8000/cognitive-load/update-data",
+            'http://localhost:8000/cognitive-load/update',
             json=data,
-            timeout=5
+            timeout=3  # 3 second timeout
         )
         
         if response.status_code == 200:
-            print(f"[API] Data sent successfully: {final_cl:.1f}%")
+            print(f"[HTTP] Data sent successfully: {final_cl:.1f}%")
+            return True
         else:
-            print(f"[API] Failed to send data: {response.status_code}")
+            print(f"[HTTP] Failed to send data: {response.status_code}")
+            return False
             
+    except requests.exceptions.RequestException as e:
+        print(f"[HTTP] Connection error: {e}")
+        return False
     except Exception as e:
-        print(f"[API] Error sending data: {e}")
+        print(f"[HTTP] Error: {e}")
+        return False
+
 
 
 ###################################################################
@@ -364,16 +398,17 @@ while True:
         w_body = 0.5
 
     final_cl = (w_emotion * emotion_cl_avg) + (w_body * body_cl_avg)
-    
+
         # ----------------- SEND TO FASTAPI EVERY 5 SECONDS -----------------
+   # ----------------- SEND VIA WEBSOCKET EVERY 5 SECONDS -----------------
     current_time = time.time()
     if current_time - last_send_time >= SEND_INTERVAL:
-        # Run in a separate thread to avoid blocking the video loop
-        threading.Thread(
-            target=send_cognitive_data_to_api,
-            args=(emotion_cl_avg, body_cl_avg, final_cl),
-            daemon=True
-        ).start()
+        current_timestamp = datetime.now().isoformat()
+
+        save_cognitive_data(current_timestamp, emotion_cl_avg, body_cl_avg, final_cl)
+        
+        # Send via HTTP POST
+        send_cognitive_data_via_http(emotion_cl_avg, body_cl_avg, final_cl)
         last_send_time = current_time
 
 

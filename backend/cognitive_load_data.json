@@ -1,0 +1,114 @@
+[
+  {
+    "timestamp": "2025-12-07T12:30:16.593696",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 67.15,
+    "final_cognitive_load": 58.57,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:22.374083",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 56.73,
+    "final_cognitive_load": 53.37,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:27.877435",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 26.2,
+    "final_cognitive_load": 38.1,
+    "status": "low"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:33.145534",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 56.33,
+    "final_cognitive_load": 53.17,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:38.520783",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 52.24,
+    "final_cognitive_load": 51.12,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:44.142336",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 54.51,
+    "final_cognitive_load": 52.26,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:49.226755",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 64.31,
+    "final_cognitive_load": 57.15,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:30:54.954582",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 46.4,
+    "final_cognitive_load": 48.2,
+    "status": "low"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:00.590776",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 27.61,
+    "final_cognitive_load": 38.81,
+    "status": "low"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:06.246217",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 44.67,
+    "final_cognitive_load": 47.33,
+    "status": "low"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:11.968597",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 32.71,
+    "final_cognitive_load": 41.36,
+    "status": "low"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:17.308240",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 40.82,
+    "final_cognitive_load": 45.41,
+    "status": "low"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:22.311676",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 61.8,
+    "final_cognitive_load": 55.9,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:27.404113",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 69.31,
+    "final_cognitive_load": 59.65,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:32.889947",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 64.07,
+    "final_cognitive_load": 57.03,
+    "status": "high"
+  },
+  {
+    "timestamp": "2025-12-07T12:31:38.589271",
+    "emotion_cognitive_load": 50.0,
+    "body_cognitive_load": 60.91,
+    "final_cognitive_load": 55.45,
+    "status": "high"
+  }
+]
