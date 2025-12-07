@@ -234,44 +234,37 @@ def estimate_body_cl(landmarks, history):
     final_score = np.mean(history["history"])
     return max(0, min(100, final_score)), reasons
 
-# ===========================================================
-# ADD HTTP REQUEST FUNCTION
-# ===========================================================
 
+################################################################### 
 import requests
 import time
-def send_cognitive_data_via_http(emotion_cl_avg, body_cl_avg, final_cl):
-    """Send cognitive load data via HTTP POST request"""
+import threading
+
+# Add this function to send data to FastAPI
+def send_cognitive_data_to_api(emotion_cl_avg, body_cl_avg, final_cl):
+    """Send cognitive load data to FastAPI backend"""
     try:
         data = {
-            "current_load": float(final_cl),
-            "emotion_load": float(emotion_cl_avg),
-            "body_load": float(body_cl_avg),
+            "current_load": final_cl,
+            "emotion_load": emotion_cl_avg,
+            "body_load": body_cl_avg,
             "status": "high" if final_cl > 50 else "low",
             "timestamp": time.time()
         }
         
-        # Send POST request to FastAPI endpoint
         response = requests.post(
-            'http://localhost:8000/cognitive-load/update',
+            "http://localhost:8000/cognitive-load/update-data",
             json=data,
-            timeout=3  # 3 second timeout
+            timeout=5
         )
         
         if response.status_code == 200:
-            print(f"[HTTP] Data sent successfully: {final_cl:.1f}%")
-            return True
+            print(f"[API] Data sent successfully: {final_cl:.1f}%")
         else:
-            print(f"[HTTP] Failed to send data: {response.status_code}")
-            return False
+            print(f"[API] Failed to send data: {response.status_code}")
             
-    except requests.exceptions.RequestException as e:
-        print(f"[HTTP] Connection error: {e}")
-        return False
     except Exception as e:
-        print(f"[HTTP] Error: {e}")
-        return False
-
+        print(f"[API] Error sending data: {e}")
 
 
 ###################################################################
@@ -400,15 +393,17 @@ while True:
     final_cl = (w_emotion * emotion_cl_avg) + (w_body * body_cl_avg)
 
         # ----------------- SEND TO FASTAPI EVERY 5 SECONDS -----------------
-   # ----------------- SEND VIA WEBSOCKET EVERY 5 SECONDS -----------------
     current_time = time.time()
     if current_time - last_send_time >= SEND_INTERVAL:
         current_timestamp = datetime.now().isoformat()
 
         save_cognitive_data(current_timestamp, emotion_cl_avg, body_cl_avg, final_cl)
-        
-        # Send via HTTP POST
-        send_cognitive_data_via_http(emotion_cl_avg, body_cl_avg, final_cl)
+        # Run in a separate thread to avoid blocking the video loop
+        threading.Thread(
+            target=send_cognitive_data_to_api,
+            args=(emotion_cl_avg, body_cl_avg, final_cl),
+            daemon=True
+        ).start()
         last_send_time = current_time
 
 

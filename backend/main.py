@@ -335,7 +335,7 @@ async def generate_tts(text: str):
 @app.post("/generate-explanation/{filename}")
 async def generate_explanation(
     filename: str,
-    explanation_type: str = Query("detailed", pattern="^(detailed|simple|key_points)$"),
+    explanation_type: str = Query("detailed", regex="^(detailed|simple|key_points)$"),
     slide_numbers: Optional[List[int]] = Query(None),
     slide_by_slide: bool = Query(False)
 ):
