@@ -289,7 +289,20 @@ while True:
     try:
         if boxes:
             missing_person_frames = 0
-            results = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+            # results = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False) # For Mac OS
+            
+
+            # --------WINDOWS SPECIFIC SETTING--------
+            small_frame = cv2.resize(frame, (640, 480))  # Resize for faster processing for Windows
+
+            results = DeepFace.analyze(
+                small_frame,
+                actions=['emotion'],
+                enforce_detection=False,
+                detector_backend='opencv' 
+                # -------------------------------------------
+)
+
             if not isinstance(results, list):
                 results = [results]
 
