@@ -1,4 +1,4 @@
-# cognitive_route.py - FIXED Version
+# cognitive_route.py - Optimized Version
 import asyncio
 import time
 import logging
@@ -6,7 +6,6 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from typing import List
 from threading import Lock
-import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +13,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/cognitive-load", tags=["Cognitive Load"])
 
-# ===========================================================
-# GLOBAL VARIABLES - MOVE THESE BEFORE ENDPOINTS
-# ===========================================================
 # Global variables for cognitive load monitoring
 cognitive_load_data = {
     "current_load": 0.0,
@@ -28,9 +24,8 @@ cognitive_load_data = {
     "message": "Waiting for data from cognitive fusion script"
 }
 
-# WebSocket connections with thread safety
+# WebSocket connections
 active_connections: List[WebSocket] = []
-connections_lock = asyncio.Lock()
 
 # Alert throttling variables
 last_alert_time = 0
@@ -79,20 +74,13 @@ class CognitiveLoadMonitor:
             "alert_type": "warning"
         }
         
-        async with connections_lock:
-            disconnected = []
-            for connection in active_connections:
-                try:
-                    await connection.send_json(alert_message)
-                    logger.info(f"[ALERT] Alert sent to client")
-                except Exception as e:
-                    logger.error(f"[ALERT] Error sending alert to client: {e}")
-                    disconnected.append(connection)
-            
-            # Remove disconnected clients
-            for connection in disconnected:
-                if connection in active_connections:
-                    active_connections.remove(connection)
+        for connection in active_connections[:]:
+            try:
+                await connection.send_json(alert_message)
+                logger.info(f"[ALERT] Alert sent to client")
+            except Exception as e:
+                logger.error(f"[ALERT] Error sending alert to client: {e}")
+                active_connections.remove(connection)
     
     async def _send_status_update(self):
         """Send current status to all connected WebSocket clients every 5 seconds"""
@@ -110,65 +98,58 @@ class CognitiveLoadMonitor:
             "data": cognitive_load_data
         }
         
-        async with connections_lock:
-            disconnected = []
-            for connection in active_connections:
-                try:
-                    await connection.send_json(status_message)
-                except Exception as e:
-                    logger.error(f"[WS] Error sending status update to client: {e}")
-                    disconnected.append(connection)
-            
-            # Remove disconnected clients safely
-            for connection in disconnected:
-                if connection in active_connections:
-                    active_connections.remove(connection)
+        for connection in active_connections[:]:
+            try:
+                await connection.send_json(status_message)
+            except Exception as e:
+                logger.error(f"[WS] Error sending status update to client: {e}")
+                active_connections.remove(connection)
 
-# Initialize monitor BEFORE using it in endpoints
+# Initialize monitor
 monitor = CognitiveLoadMonitor()
 
-# ===========================================================
-# HTTP ENDPOINTS
-# ===========================================================
-@router.post("/update")
-async def update_cognitive_load(data: dict):
-    """Receive cognitive load updates via HTTP POST"""
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time cognitive load updates"""
+    logger.info("[WS] New WebSocket connection attempt")
+    await websocket.accept()
+    active_connections.append(websocket)
+    logger.info(f"[WS] Connection accepted. Total: {len(active_connections)}")
+    
     try:
-        logger.info(f"[HTTP] Received cognitive data: {data.get('current_load', 0):.1f}%")
-        
-        current_load = float(data.get("current_load", 0))
-        
-        # Update global data
-        cognitive_load_data.update({
-            "current_load": current_load,
-            "emotion_load": float(data.get("emotion_load", 0)),
-            "body_load": float(data.get("body_load", 0)),
-            "last_update": time.time(),
-            "is_monitoring": True,
-            "message": "Real-time data from cognitive fusion"
+        # Send current status immediately
+        await websocket.send_json({
+            "type": "status_update",
+            "data": cognitive_load_data
         })
+        logger.info("[WS] Initial status sent")
         
-        # Determine status based on threshold
-        if current_load > monitor.alert_threshold:
-            cognitive_load_data["status"] = "high"
-            cognitive_load_data["last_alert"] = time.time()
-            logger.warning(f"[ALERT] High cognitive load detected: {current_load:.1f}%")
-        else:
-            cognitive_load_data["status"] = "low"
-            cognitive_load_data["last_alert"] = None
+        # Start periodic status updates
+        asyncio.create_task(periodic_status_updates())
         
-        return JSONResponse({
-            "success": True,
-            "message": "Cognitive load data updated successfully",
-            "status": cognitive_load_data["status"]
-        })
-        
+        # Keep connection alive
+        while True:
+            data = await websocket.receive_text()
+            logger.debug(f"[WS] Received: {data}")
+            
+    except WebSocketDisconnect:
+        logger.info("[WS] WebSocket disconnected")
+        if websocket in active_connections:
+            active_connections.remove(websocket)
     except Exception as e:
-        logger.error(f"[HTTP] Error updating cognitive load: {e}")
-        return JSONResponse({
-            "success": False,
-            "message": str(e)
-        }, status_code=400)
+        logger.error(f"[WS] WebSocket error: {e}")
+        if websocket in active_connections:
+            active_connections.remove(websocket)
+
+async def periodic_status_updates():
+    """Send periodic status updates to all connected clients"""
+    while True:
+        try:
+            await monitor._send_status_update()
+            await asyncio.sleep(5)  # Wait 5 seconds
+        except Exception as e:
+            logger.error(f"[PERIODIC] Error in status updates: {e}")
+            await asyncio.sleep(5)
 
 @router.get("/current-status")
 async def get_current_cognitive_load():
@@ -201,96 +182,40 @@ async def set_alert_threshold(threshold_data: dict):
         "new_threshold": threshold
     })
 
-# ===========================================================
-# SIMPLIFIED FRONTEND-FRIENDLY ENDPOINTS
-# ===========================================================
-@router.get("/simple-status")
-async def get_simple_status():
-    """Get simplified status - perfect for frontend polling"""
+@router.post("/update-data")
+async def update_cognitive_data(data: dict):
+    """Receive cognitive load data from the fusion script"""
+    current_load = data.get("current_load", 0.0)
+    logger.info(f"[API] Received data - Load: {current_load:.1f}%")
+    
+    # Update global data
+    cognitive_load_data.update({
+        "current_load": current_load,
+        "emotion_load": data.get("emotion_load", 0.0),
+        "body_load": data.get("body_load", 0.0),
+        "status": data.get("status", "low"),
+        "last_update": time.time(),
+        "is_monitoring": True,
+        "message": "Real-time data from cognitive fusion"
+    })
+    
+    # Send alert if cognitive load is high (with throttling)
+    if current_load > monitor.alert_threshold:
+        cognitive_load_data["last_alert"] = time.time()
+        cognitive_load_data["status"] = "high"
+        logger.warning(f"[ALERT] High cognitive load detected: {current_load:.1f}%")
+        await monitor._send_alert_to_clients(current_load)
+    else:
+        cognitive_load_data["status"] = "low"
+    
+    # Status updates are handled by periodic task now
+    
     return JSONResponse({
-        "success": True,
-        "load": cognitive_load_data["current_load"],
-        "status": cognitive_load_data["status"],
-        "last_alert": cognitive_load_data["last_alert"],
-        "threshold": monitor.alert_threshold,
-        "timestamp": time.time()
+        "success": True, 
+        "message": f"Data updated - Load: {current_load:.1f}%",
+        "alert_sent": current_load > monitor.alert_threshold
     })
 
-@router.get("/header-status")
-async def get_header_status():
-    """Get minimal status for header display"""
-    current_load = cognitive_load_data["current_load"]
-    status = cognitive_load_data["status"]
-    
-    # Return minimal data for header
-    return JSONResponse({
-        "load": round(current_load, 1),
-        "status": status,
-        "is_high": status == "high",
-        "updated_at": cognitive_load_data.get("last_update", time.time())
-    })
-
-# ===========================================================
-# WEBSOCKET ENDPOINTS (Optional - keep if needed)
-# ===========================================================
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time cognitive load updates"""
-    logger.info("[WS] New WebSocket connection attempt")
-    await websocket.accept()
-    
-    async with connections_lock:
-        active_connections.append(websocket)
-    
-    logger.info(f"[WS] Connection accepted. Total: {len(active_connections)}")
-    
-    try:
-        await websocket.send_json({
-            "type": "status_update",
-            "data": cognitive_load_data
-        })
-        logger.info("[WS] Initial status sent")
-        
-        while True:
-            data = await websocket.receive_text()
-            try:
-                message = json.loads(data)
-                if message.get("type") == "cognitive_data_update":
-                    logger.info(f"[WS] Received cognitive data: {message['current_load']:.1f}%")
-                    
-                    cognitive_load_data.update({
-                        "current_load": message["current_load"],
-                        "emotion_load": message.get("emotion_load", 0.0),
-                        "body_load": message.get("body_load", 0.0),
-                        "last_update": time.time(),
-                        "is_monitoring": True,
-                        "message": "Real-time data from cognitive fusion"
-                    })
-                    
-                    if message["current_load"] > monitor.alert_threshold:
-                        cognitive_load_data["last_alert"] = time.time()
-                        cognitive_load_data["status"] = "high"
-                        logger.warning(f"[ALERT] High cognitive load detected: {message['current_load']:.1f}%")
-                        await monitor._send_alert_to_clients(message["current_load"])
-                    else:
-                        cognitive_load_data["status"] = "low"
-                        
-            except json.JSONDecodeError:
-                logger.warning("[WS] Received non-JSON message")
-                
-    except WebSocketDisconnect:
-        logger.info("[WS] WebSocket disconnected")
-    except Exception as e:
-        logger.error(f"[WS] WebSocket error: {e}")
-    finally:
-        async with connections_lock:
-            if websocket in active_connections:
-                active_connections.remove(websocket)
-                logger.info(f"[WS] Connection removed. Total: {len(active_connections)}")
-
-# ===========================================================
-# OTHER ENDPOINTS (Keep existing)
-# ===========================================================
 @router.get("/history")
 async def get_cognitive_load_history():
     """Get cognitive load history (last 6 readings)"""
@@ -346,18 +271,3 @@ async def get_alert_stats():
         "success": True,
         "data": stats
     })
-
-async def periodic_status_updates():
-    """Send periodic status updates to all connected clients"""
-    while True:
-        try:
-            await monitor._send_status_update()
-            await asyncio.sleep(5)
-        except Exception as e:
-            logger.error(f"[PERIODIC] Error in status updates: {e}")
-            await asyncio.sleep(5)
-
-# Start the periodic updates when the module loads
-@router.on_event("startup")
-async def startup_event():
-    asyncio.create_task(periodic_status_updates())
